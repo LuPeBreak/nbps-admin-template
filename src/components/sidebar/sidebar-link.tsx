@@ -39,8 +39,7 @@ export function SidebarLink({
     : pathname === href || pathname.startsWith(`${href}/`);
 
   const linkClasses = cn(
-    "relative flex h-9 w-full items-center rounded-lg text-sm font-medium transition-all overflow-hidden",
-    collapsed ? "justify-center px-2 gap-0" : "px-3 gap-3",
+    "relative flex h-9 w-full items-center gap-3 overflow-hidden rounded-lg px-3 text-sm font-medium transition-colors duration-200 motion-reduce:transition-none",
     isActive
       ? "bg-primary/10 text-primary"
       : "text-muted-foreground hover:bg-muted hover:text-foreground",
@@ -65,10 +64,10 @@ export function SidebarLink({
           </span>
           <span
             className={cn(
-              "whitespace-nowrap transition-all duration-200 truncate",
+              "min-w-0 max-w-32 truncate whitespace-nowrap transition-[max-width,opacity] duration-200 ease-linear motion-reduce:transition-none",
               collapsed
-                ? "w-0 opacity-0 pointer-events-none"
-                : "w-auto opacity-100",
+                ? "pointer-events-none max-w-0 opacity-0"
+                : "opacity-100",
             )}
           >
             {label}

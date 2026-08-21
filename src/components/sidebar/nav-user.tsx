@@ -38,23 +38,25 @@ export function NavUser({ name, email }: NavUserProps) {
     <DropdownMenu>
       <DropdownMenuTrigger
         className={cn(
-          "flex w-full items-center rounded-lg outline-none hover:bg-muted transition-colors",
-          collapsed ? "justify-center p-1 gap-0" : "gap-3 p-1.5 text-left",
+          "flex w-full items-center gap-3 rounded-lg p-1.5 text-left outline-none transition-colors hover:bg-muted motion-reduce:transition-none",
         )}
+        aria-label={collapsed ? `Abrir menu de ${name}` : undefined}
+        title={collapsed ? name : undefined}
       >
         <Avatar className="h-8 w-8 shrink-0">
           <AvatarFallback className="bg-primary/10 text-xs font-medium text-primary">
             {getInitials(name)}
           </AvatarFallback>
         </Avatar>
-        {!collapsed && (
-          <div className="flex-1 truncate text-left">
-            <p className="truncate text-xs font-medium">{name}</p>
-            <p className="truncate text-[10px] text-muted-foreground">
-              {email}
-            </p>
-          </div>
-        )}
+        <div
+          className={cn(
+            "min-w-0 max-w-48 flex-1 truncate text-left transition-[max-width,opacity] duration-200 ease-linear motion-reduce:transition-none",
+            collapsed ? "pointer-events-none max-w-0 opacity-0" : "opacity-100",
+          )}
+        >
+          <p className="truncate text-xs font-medium">{name}</p>
+          <p className="truncate text-[10px] text-muted-foreground">{email}</p>
+        </div>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" side="top" className="w-48">
         <div className="px-2 py-1.5">
