@@ -22,7 +22,7 @@ Canonical source of truth: global architectural rules, conventions, developer pr
 
 ### 1. Data Access & Environment Safety
 - **Database Boundary**: Restrict application runtime `prisma.*` queries to Server Actions (`.action.ts`). Never call them in pages, layouts, route UI, or components. Dedicated server-only infrastructure files such as seeds, migrations, and framework adapter configuration are explicit exceptions.
-- **Environment Safety**: Never expose server-side secret keys (DB credentials, API tokens) in client-side config block of `src/env.ts`.
+- **Environment Safety**: Never expose server-side secret keys (DB credentials, API tokens, SMTP credentials) in client-side config block of `src/env.ts` or in logs and reports.
 
 ### 2. Double-Layer Protection Principles
 - **Double-Layer Validation**: Strict Zod schema validation server-side for all custom Server Actions, paired with React Hook Form client-side for feedback. Note: Better Auth native client methods (`authClient.admin.*`) handle own validation internally — no duplicate.
@@ -39,13 +39,13 @@ Canonical source of truth: global architectural rules, conventions, developer pr
 - **Git Workflow**: One feature branch per PR. Integration happens exclusively via squash merge into `main`. One PR = one complete, tested, approved feature slice; the squash commit message describes the delivered slice concisely (single-line subject preferred) and never concatenates checkpoint commit messages. Concise English Conventional Commits.
 - **Checkpoint Commits**: On a feature branch, intermediate commits are reversible work checkpoints (implementation, tests, fixes, cleanup). Each checkpoint must stay coherent enough for revert, diagnosis and review; never use them to hide broken tests or known debt as "commit now, fix later".
 - **Atomicity at Integration**: Quality gates concentrate before the squash merge: green CI, relevant verification executed, and human approval of the full branch diff.
-- **Separate Capabilities**: Commit, push and merge have independent gates. Never assume one grants another.
+- **Separate Capabilities**: Commit, push and merge have independent gates. Never assume one grants another. Never rewrite published/shared history (force-push) without explicit authorization.
 - **Human Approval**: Pushing a branch/opening its PR, marking the PR ready, and squash-merging are separate gates, each requiring explicit human approval of the current full branch diff. Checkpoint commits inside a feature branch need no per-commit approval during an authorized task; they are reviewed collectively at these gates.
 - **Command Classification** (source of truth: `package.json`; never invent scripts):
   - **Read-only checks** (never write tracked source; may refresh gitignored caches such as `.tsbuildinfo`): `pnpm lint` (`biome check`), `pnpm typecheck` (`tsc --noEmit`), `pnpm test` (`vitest run`).
   - **Mutants** (rewrite any file selected by `biome.json`, including configs outside `src/`; `src/components/ui` stays excluded): `pnpm check` (= `biome check --write` + typecheck) and `pnpm format`. Never treat them as verification; run only when the rewrite is intended, then inspect the resulting diff.
   - **Artifact-generating**: `pnpm build` writes gitignored output only; run when routes, config, or bundling are affected.
-  - **Stateful**: `db:studio`, `db:seed` touch database/dev services; require explicit environment and authorization. `db:seed` targets the `DATABASE_URL` database and creates or updates the initial admin account (`ADMIN_EMAIL`/`ADMIN_PASSWORD`, `emailVerified: true`) — local/dev only; never log or report credentials.
+  - **Stateful**: `db:studio`, `db:seed` touch database/dev services; require explicit environment and authorization. `db:seed` targets the `DATABASE_URL` database and creates the initial admin account only when no user exists with `ADMIN_EMAIL`; the created account gets `emailVerified: true` and existing accounts are left untouched — local/dev only; never log or report credentials.
 - **Pre-commit Verification**: Before review, run the read-only checks relevant to the change plus tests covering changed behavior. Never `--no-verify`.
 - **Evidence Reporting**: Report verification honestly: exact command + directory + result; relevant tests chosen; manual checks performed; omissions with reason; files auto-modified by tools; final working-tree state; anything outside scope. Never claim verification that did not run.
 - **Test Scope**:
@@ -114,11 +114,11 @@ Before concluding:
 ---
 
 ## 🚫 Common AI Anti-Patterns to Avoid
-1. **Renaming Proxy**: Never rename `src/proxy.ts` to `middleware.ts` or create traditional middleware.
+1. **Renaming Proxy**: Never rename `src/proxy.ts` to `middleware.ts`, create traditional middleware, or assume Edge runtime for Proxy (it defaults to Node.js in Next.js 16).
 2. **Components in App Folder**: `src/app/` exclusively for routing (Page/Layout). All reusable UI components → `src/components/`.
 3. **Full-Page Client Components**: Never mark entire pages/layouts `"use client"`. Keep Server Components, extract interactive nodes as small Client Components. Only exception: `error.tsx` must be Client Component.
 4. **Hardcoded Hex Colors**: Never custom hex (e.g. `bg-[#ff0000]`) in Tailwind/JSX. Use semantic CSS variables in `globals.css`.
-5. **Outdated API Patterns**: Respect configured versions: Next.js 16, Prisma 7, Better Auth 1.x, Tailwind CSS v4. No legacy patterns.
+5. **Outdated API Patterns**: Respect configured versions: Next.js 16, Prisma 7, Better Auth 1.x, Tailwind CSS v4, Base UI. No legacy patterns.
 
 ---
 
