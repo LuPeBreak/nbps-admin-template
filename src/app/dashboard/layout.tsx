@@ -22,7 +22,7 @@ export default async function DashboardLayout({
         />
 
         <div
-          className="flex flex-1 flex-col transition-[padding-left] duration-300"
+          className="flex flex-1 flex-col transition-[padding-left] duration-200 ease-linear motion-reduce:transition-none"
           style={{ paddingLeft: "var(--sidebar-width)" }}
         >
           <ImpersonationBanner />

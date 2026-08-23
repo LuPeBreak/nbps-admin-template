@@ -24,12 +24,12 @@ export function DashboardSidebar({ role, name, email }: DashboardSidebarProps) {
   );
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-20 flex flex-col border-r border-border/40 bg-card/70 backdrop-blur-xl transition-all duration-300 w-[var(--sidebar-width)]">
-      <div className="flex h-16 items-center gap-2 border-b border-border/40 px-3 overflow-hidden transition-all duration-300 group-data-[collapsed=true]/shell:gap-0 group-data-[collapsed=true]/shell:justify-center group-data-[collapsed=true]/shell:px-2">
+    <aside className="fixed inset-y-0 left-0 z-20 flex w-[var(--sidebar-width)] flex-col border-r border-border/40 bg-card/70 backdrop-blur-xl transition-[width] duration-200 ease-linear motion-reduce:transition-none">
+      <div className="flex h-16 items-center gap-2 overflow-hidden border-b border-border/40 px-3">
         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">
           N
         </div>
-        <span className="text-lg font-bold tracking-tight whitespace-nowrap transition-all duration-200 truncate group-data-[collapsed=true]/shell:w-0 group-data-[collapsed=true]/shell:opacity-0 group-data-[collapsed=true]/shell:pointer-events-none">
+        <span className="max-w-32 truncate text-lg font-bold tracking-tight whitespace-nowrap transition-[max-width,opacity] duration-200 ease-linear motion-reduce:transition-none group-data-[collapsed=true]/shell:max-w-0 group-data-[collapsed=true]/shell:pointer-events-none group-data-[collapsed=true]/shell:opacity-0">
           NBPS
         </span>
       </div>
