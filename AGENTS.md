@@ -34,10 +34,10 @@ Canonical source of truth: global architectural rules, conventions, developer pr
 
 ### 4. Developer Protocol & Git
 - **Step-by-Step Execution**: Implement + test one small feature slice at a time. No mass updates across modules.
-- **Clean Commits**: Commit to local branches, merge into `development` fast-forward only (`git merge --ff-only`). Concise English Conventional Commits.
-- **No "Fix" Commits**: No quick "fix" commits for bugs introduced same session. Amend or squash — single atomic commit.
-- **Atomic Commits**: One commit = one complete, tested, approved feature slice (Action + UI when both part of slice).
-- **After Commit = Done**: Commit = production quality. No "commit now, fix later."
+- **Git Workflow**: One feature branch per PR. Integration happens exclusively via squash merge into `main`; one PR = one complete, tested, approved feature slice. Concise English Conventional Commits.
+- **Checkpoint Commits**: On a feature branch, intermediate commits are reversible work checkpoints (implementation, tests, fixes, cleanup). Each checkpoint must stay coherent enough for revert, diagnosis and review; never use them to hide broken tests or known debt as "commit now, fix later".
+- **Atomicity at Integration**: Quality gates concentrate before the squash merge: green CI, relevant verification executed, and human approval of the full branch diff.
+- **Separate Capabilities**: Commit, push and merge have independent gates. Never assume one grants another.
 - **Human Approval**: Never commit without explicit human approval of diff.
 - **Pre-commit Verification**: Before review, run `pnpm check` or `npm run check` + tests relevant to changed behavior (per project commands or local `AGENTS.md`). Never `--no-verify`.
 - **Test Scope**:
