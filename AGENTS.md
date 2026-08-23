@@ -34,7 +34,7 @@ Canonical source of truth: global architectural rules, conventions, developer pr
 
 ### 4. Developer Protocol & Git
 - **Step-by-Step Execution**: Implement + test one small feature slice at a time. No mass updates across modules.
-- **Git Workflow**: One feature branch per PR. Integration happens exclusively via squash merge into `main`; one PR = one complete, tested, approved feature slice. Concise English Conventional Commits.
+- **Git Workflow**: One feature branch per PR. Integration happens exclusively via squash merge into `main`; one PR = one complete, tested, approved feature slice. The squash commit message describes the delivered slice concisely (single-line subject preferred); never concatenate checkpoint commit messages. Concise English Conventional Commits.
 - **Checkpoint Commits**: On a feature branch, intermediate commits are reversible work checkpoints (implementation, tests, fixes, cleanup). Each checkpoint must stay coherent enough for revert, diagnosis and review; never use them to hide broken tests or known debt as "commit now, fix later".
 - **Atomicity at Integration**: Quality gates concentrate before the squash merge: green CI, relevant verification executed, and human approval of the full branch diff.
 - **Separate Capabilities**: Commit, push and merge have independent gates. Never assume one grants another.
