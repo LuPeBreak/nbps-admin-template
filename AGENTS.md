@@ -111,6 +111,9 @@ Before concluding:
 - confirm no speculative abstraction/dependency added;
 - confirm change did not expand requested scope.
 
+### 8. Project Conventions
+- **Language**: Code, comments, documentation, and commits in English; all user-facing text (UI copy, emails, validation messages) in Portuguese (PT-BR).
+
 ---
 
 ## 🚫 Common AI Anti-Patterns to Avoid
