@@ -29,7 +29,7 @@ Canonical source of truth: global architectural rules, conventions, developer pr
 - **Double-Layer Permissions**: Enforce authorization checks in both layers. Server-side checks are mandatory for security. Client-side checks strictly hide or disable UI for UX.
 
 ### 3. Code Cleanliness & Modularity
-- **Clean Exports**: Named exports for helper components, actions, services. Default exports only for Next.js Page and Layout entrypoints.
+- **Clean Exports**: Named exports for helper components, actions, services. Default exports only for Next.js file-convention entrypoints (`page`, `layout`, `error`, `not-found`, `loading`); `route.ts` exports named HTTP method handlers.
 - **No Barrel Logic**: Never place business logic in barrel/index files (`index.ts`). Re-export symbols only.
 
 ### 4. Developer Protocol & Git
