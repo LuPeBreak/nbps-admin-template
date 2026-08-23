@@ -33,14 +33,14 @@ Canonical source of truth: global architectural rules, conventions, developer pr
 - **No Barrel Logic**: Never place business logic in barrel/index files (`index.ts`). Re-export symbols only.
 
 ### 4. Developer Protocol & Git
-- **Step-by-Step Execution**: Implement + test one small feature slice at a time. No mass updates across modules.
+- **Step-by-Step Execution**: Implement + test one small feature slice at a time. No mass code updates across modules. A cross-module documentation-only consistency pass counts as its own slice.
 - **Doc Pass**: A material code change updates the owning module's `AGENTS.md` in the same PR. Before editing, walk root `AGENTS.md` → nearest nested `AGENTS.md` → actual code.
 - **Instruction Precedence**: Nested `AGENTS.md` files specialize the root; they never weaken it. Conflicts are declared exceptions with reason, never silent overrides.
-- **Git Workflow**: One feature branch per PR. Integration happens exclusively via squash merge into `main`; one PR = one complete, tested, approved feature slice. The squash commit message describes the delivered slice concisely (single-line subject preferred); never concatenate checkpoint commit messages. Concise English Conventional Commits.
+- **Git Workflow**: One feature branch per PR. Integration happens exclusively via squash merge into `main` — merging is always squash, never a merge or rebase commit. One PR = one complete, tested, approved feature slice; the squash commit message describes the delivered slice concisely (single-line subject preferred) and never concatenates checkpoint commit messages. Concise English Conventional Commits.
 - **Checkpoint Commits**: On a feature branch, intermediate commits are reversible work checkpoints (implementation, tests, fixes, cleanup). Each checkpoint must stay coherent enough for revert, diagnosis and review; never use them to hide broken tests or known debt as "commit now, fix later".
 - **Atomicity at Integration**: Quality gates concentrate before the squash merge: green CI, relevant verification executed, and human approval of the full branch diff.
 - **Separate Capabilities**: Commit, push and merge have independent gates. Never assume one grants another.
-- **Human Approval**: Never push, open a PR, or merge without explicit human approval of the full branch diff. Local checkpoint commits require human authorization granted for the session or per commit.
+- **Human Approval**: Pushing a branch/opening its PR, marking the PR ready, and squash-merging are separate gates, each requiring explicit human approval of the current full branch diff. Checkpoint commits inside a feature branch need no per-commit approval during an authorized task; they are reviewed collectively at these gates.
 - **Command Classification** (source of truth: `package.json`; never invent scripts):
   - **Read-only checks** (never write tracked source; may refresh gitignored caches such as `.tsbuildinfo`): `pnpm lint` (`biome check`), `pnpm typecheck` (`tsc --noEmit`), `pnpm test` (`vitest run`).
   - **Mutants** (rewrite any file selected by `biome.json`, including configs outside `src/`; `src/components/ui` stays excluded): `pnpm check` (= `biome check --write` + typecheck) and `pnpm format`. Never treat them as verification; run only when the rewrite is intended, then inspect the resulting diff.
