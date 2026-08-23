@@ -34,12 +34,20 @@ Canonical source of truth: global architectural rules, conventions, developer pr
 
 ### 4. Developer Protocol & Git
 - **Step-by-Step Execution**: Implement + test one small feature slice at a time. No mass updates across modules.
+- **Doc Pass**: A material code change updates the owning module's `AGENTS.md` in the same PR. Before editing, walk root `AGENTS.md` → nearest nested `AGENTS.md` → actual code.
+- **Instruction Precedence**: Nested `AGENTS.md` files specialize the root; they never weaken it. Conflicts are declared exceptions with reason, never silent overrides.
 - **Git Workflow**: One feature branch per PR. Integration happens exclusively via squash merge into `main`; one PR = one complete, tested, approved feature slice. The squash commit message describes the delivered slice concisely (single-line subject preferred); never concatenate checkpoint commit messages. Concise English Conventional Commits.
 - **Checkpoint Commits**: On a feature branch, intermediate commits are reversible work checkpoints (implementation, tests, fixes, cleanup). Each checkpoint must stay coherent enough for revert, diagnosis and review; never use them to hide broken tests or known debt as "commit now, fix later".
 - **Atomicity at Integration**: Quality gates concentrate before the squash merge: green CI, relevant verification executed, and human approval of the full branch diff.
 - **Separate Capabilities**: Commit, push and merge have independent gates. Never assume one grants another.
 - **Human Approval**: Never commit without explicit human approval of diff.
-- **Pre-commit Verification**: Before review, run `pnpm check` or `npm run check` + tests relevant to changed behavior (per project commands or local `AGENTS.md`). Never `--no-verify`.
+- **Command Classification** (source of truth: `package.json`; never invent scripts):
+  - **Read-only checks**: `pnpm lint` (`biome check`), `pnpm typecheck` (`tsc --noEmit`), `pnpm test` (`vitest run`).
+  - **Mutants** (rewrite source files): `pnpm check` (= `biome check --write` + typecheck) and `pnpm format`. Never treat them as verification; run only when the rewrite is intended, then inspect the resulting diff.
+  - **Artifact-generating**: `pnpm build` writes gitignored output only; run when routes, config, or bundling are affected.
+  - **Stateful**: `db:studio`, `db:seed` touch database/dev services; require explicit environment and authorization.
+- **Pre-commit Verification**: Before review, run the read-only checks relevant to the change plus tests covering changed behavior. Never `--no-verify`.
+- **Evidence Reporting**: Report exact commands executed and their results; report omitted checks with reason; never claim verification that did not run.
 - **Test Scope**:
   - Run existing relevant tests for every behavior change.
   - Add or update tests for business rules, permissions, validation, bug fixes when test infrastructure exists.
@@ -116,7 +124,7 @@ Before concluding:
 
 ## 🗺️ Module AGENTS.md Index
 
-When editing code in specific folders, **MUST** read local `AGENTS.md` in that directory for design patterns + details:
+When editing code in specific folders, **MUST** read local `AGENTS.md` in that directory for design patterns + details (nested files inherit the root guide and may only make rules stricter):
 
 | Module | Path | Description & Focus |
 |:---|:---|:---|
