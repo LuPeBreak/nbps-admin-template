@@ -1,5 +1,7 @@
 # Database Module (src/lib/db/)
 
+This file inherits the root `AGENTS.md` and documents only additional rules for this directory.
+
 Prisma v7 PostgreSQL connection (singleton via `globalThis` to survive Next.js HMR). Configured with `@prisma/adapter-pg` driver adapter.
 
 ---

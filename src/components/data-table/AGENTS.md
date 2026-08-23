@@ -1,5 +1,7 @@
 # Data Table Module (src/components/data-table/)
 
+This file inherits the root `AGENTS.md` and documents only additional rules for this directory.
+
 Reusable server-side data table on `@tanstack/react-table` + state sync via `nuqs`. Pagination, sorting, filtering = server-side only.
 
 ---

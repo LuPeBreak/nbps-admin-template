@@ -1,5 +1,7 @@
 # App Module (src/app/)
 
+This file inherits the root `AGENTS.md` and documents only additional rules for this directory.
+
 Next.js App Router (pages, layouts, API routes, error boundaries). Keep route-specific Server Component orchestration here. Reusable UI, forms, dialogs, client state, and complex presentation logic belong in `src/components/`.
 
 ---

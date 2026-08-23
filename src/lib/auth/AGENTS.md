@@ -1,5 +1,7 @@
 # Auth Module (src/lib/auth/)
 
+This file inherits the root `AGENTS.md` and documents only additional rules for this directory.
+
 Configures Better Auth (Admin plugin, Prisma adapter, RBAC) + utilities to secure routes, server actions, UI elements.
 
 ---

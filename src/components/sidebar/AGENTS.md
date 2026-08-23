@@ -1,5 +1,7 @@
 # Sidebar Module (src/components/sidebar/)
 
+This file inherits the root `AGENTS.md` and documents only additional rules for this directory.
+
 Main dashboard navigation. Filters links server-side in-memory. Zero extra DB or HTTP queries.
 
 ---

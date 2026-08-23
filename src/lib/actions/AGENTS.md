@@ -1,5 +1,7 @@
 # Action Helpers (src/lib/actions/)
 
+This file inherits the root `AGENTS.md` and documents only additional rules for this directory.
+
 Shared utilities for Server Actions — input validation + centralized error handling.
 
 ---

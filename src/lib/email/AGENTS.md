@@ -1,5 +1,7 @@
 # Email Module (src/lib/email/)
 
+This file inherits the root `AGENTS.md` and documents only additional rules for this directory.
+
 Transactional email delivery via **Nodemailer** (SMTP) + **React Email** templates.
 
 ---
