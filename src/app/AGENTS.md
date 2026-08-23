@@ -9,7 +9,7 @@ Next.js App Router (pages, layouts, API routes, error boundaries). Keep route-sp
 ## 💎 Golden Rules
 
 - **Thin Route Composition**: Pages and layouts may contain route-specific Server Component orchestration, including permission checks, search-param parsing, action calls, Suspense boundaries, and composition of domain components. Reusable UI, forms, dialogs, client state, and complex presentation logic belong in `src/components/`.
-- **Default Page Exports**: Export all Page + Layout as `default` of named functions using `Page` or `Layout` suffix (e.g., `export default function DashboardPage()`).
+- **Default Page Exports**: Export Pages and Layouts as `default` from named functions with a `Page`/`Layout` suffix (e.g., `export default function DashboardPage()`).
 - **Server Components by Default**: All layouts + pages = Server Components. Extract interactive parts (forms, dialogs, button lists) as Client Components (`"use client"`) inside `src/components/`.
 - **Use requireSession**: Protect pages + layouts via `requireSession(permissions?)` at top of component.
 - **Async Params**: In Next.js 16, `params` and `searchParams` are `Promise` types — always `await` them before use (e.g., `const resolvedParams = await params`).
@@ -29,7 +29,7 @@ Only Next.js-recognized files live here:
 | `not-found.tsx` | Next.js | 404 handler component |
 | `route.ts` | Next.js | Custom API Route Handler (GET, POST, etc.) |
 
-*Note: `proxy.ts` (Next.js Edge Middleware proxy) lives in `src/proxy.ts` (root of `src/`), not `src/app/`.*
+*Note: `proxy.ts` (Next.js Proxy, Node.js runtime by default) lives in `src/proxy.ts` (root of `src/`), not `src/app/`.*
 
 ---
 
@@ -37,7 +37,7 @@ Only Next.js-recognized files live here:
 
 Route security = double-layer protection:
 
-1. **Proxy Layer (`src/proxy.ts`)**: Checks active sessions against DB via `auth.api.getSession`. Unauth → redirect to `/sign-in` from private routes. Logged-in → redirect to `/dashboard` from auth routes.
+1. **Proxy Layer (`src/proxy.ts`)**: Validates the active session (mechanism documented in `src/lib/auth/AGENTS.md`). Unauth → redirect to `/sign-in` from private routes. Logged-in → redirect to `/dashboard` from auth routes.
 2. **Page Layer (`page.tsx` / `layout.tsx`)**: Calls `requireSession` helper. Fetches user data, optionally redirects users lacking permissions → `/dashboard`.
 
 ---

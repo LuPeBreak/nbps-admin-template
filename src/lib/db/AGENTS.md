@@ -71,8 +71,8 @@ const role: "admin" | "user" = "admin";
 ## 💻 Environment & Commands
 
 ### Setup Commands
-- `pnpm prisma db seed` (or `npm run db:seed`) — Seeds DB with initial admin user.
-- `npm run db:studio` — Opens Prisma Studio (defaults `localhost:5555`).
+- `pnpm db:seed` — Seeds DB with initial admin user (see root Command Classification for gates).
+- `pnpm db:studio` — Opens Prisma Studio (defaults `localhost:5555`).
 - `npx prisma generate` — Regenerates Prisma Client after schema changes.
 - `npx prisma migrate dev --name <name>` — Generates + applies new migration.
 

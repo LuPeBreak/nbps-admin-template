@@ -107,7 +107,7 @@ export const listItemsAction = protectedAction(
 ```
 
 > [!IMPORTANT]
-> **Defesa contra exaustão de recursos**: A Zod schema para listagens (`ListItemsSchema`) deve obrigatoriamente usar coerção de números (`z.coerce.number()`) para `page` e `pageSize`, além de um teto rígido de segurança para o tamanho da página (ex: `.max(100)`), impedindo que requisições maliciosas com valores gigantes (ex: `take: 9999999`) causem exaustão de memória no banco de dados.
+> **Resource exhaustion defense**: The Zod schema for list queries (`ListItemsSchema`) must coerce numeric params (`z.coerce.number()`) for `page` and `pageSize`, and enforce a hard page-size cap (e.g. `.max(100)`), preventing malicious oversized requests (e.g. `take: 9999999`) from exhausting database memory.
 
 ### 3. Public Action
 Public access (public forms, email verification callbacks):
