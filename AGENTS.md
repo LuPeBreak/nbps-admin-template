@@ -40,14 +40,14 @@ Canonical source of truth: global architectural rules, conventions, developer pr
 - **Checkpoint Commits**: On a feature branch, intermediate commits are reversible work checkpoints (implementation, tests, fixes, cleanup). Each checkpoint must stay coherent enough for revert, diagnosis and review; never use them to hide broken tests or known debt as "commit now, fix later".
 - **Atomicity at Integration**: Quality gates concentrate before the squash merge: green CI, relevant verification executed, and human approval of the full branch diff.
 - **Separate Capabilities**: Commit, push and merge have independent gates. Never assume one grants another.
-- **Human Approval**: Never commit without explicit human approval of diff.
+- **Human Approval**: Never push, open a PR, or merge without explicit human approval of the full branch diff. Local checkpoint commits require human authorization granted for the session or per commit.
 - **Command Classification** (source of truth: `package.json`; never invent scripts):
-  - **Read-only checks**: `pnpm lint` (`biome check`), `pnpm typecheck` (`tsc --noEmit`), `pnpm test` (`vitest run`).
-  - **Mutants** (rewrite source files): `pnpm check` (= `biome check --write` + typecheck) and `pnpm format`. Never treat them as verification; run only when the rewrite is intended, then inspect the resulting diff.
+  - **Read-only checks** (never write tracked source; may refresh gitignored caches such as `.tsbuildinfo`): `pnpm lint` (`biome check`), `pnpm typecheck` (`tsc --noEmit`), `pnpm test` (`vitest run`).
+  - **Mutants** (rewrite any file selected by `biome.json`, including configs outside `src/`; `src/components/ui` stays excluded): `pnpm check` (= `biome check --write` + typecheck) and `pnpm format`. Never treat them as verification; run only when the rewrite is intended, then inspect the resulting diff.
   - **Artifact-generating**: `pnpm build` writes gitignored output only; run when routes, config, or bundling are affected.
-  - **Stateful**: `db:studio`, `db:seed` touch database/dev services; require explicit environment and authorization.
+  - **Stateful**: `db:studio`, `db:seed` touch database/dev services; require explicit environment and authorization. `db:seed` targets the `DATABASE_URL` database and creates or updates the initial admin account (`ADMIN_EMAIL`/`ADMIN_PASSWORD`, `emailVerified: true`) — local/dev only; never log or report credentials.
 - **Pre-commit Verification**: Before review, run the read-only checks relevant to the change plus tests covering changed behavior. Never `--no-verify`.
-- **Evidence Reporting**: Report exact commands executed and their results; report omitted checks with reason; never claim verification that did not run.
+- **Evidence Reporting**: Report verification honestly: exact command + directory + result; relevant tests chosen; manual checks performed; omissions with reason; files auto-modified by tools; final working-tree state; anything outside scope. Never claim verification that did not run.
 - **Test Scope**:
   - Run existing relevant tests for every behavior change.
   - Add or update tests for business rules, permissions, validation, bug fixes when test infrastructure exists.
