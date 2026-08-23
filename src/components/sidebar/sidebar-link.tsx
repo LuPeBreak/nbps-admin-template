@@ -47,33 +47,36 @@ export function SidebarLink({
 
   return (
     <Tooltip>
-      <TooltipTrigger className="block w-full">
-        <Link
-          href={href}
-          aria-current={isActive ? "page" : undefined}
-          className={linkClasses}
-        >
-          {isActive && (
-            <span
-              aria-hidden
-              className="absolute inset-y-1.5 left-1 w-1 rounded-r-full bg-primary transition-all duration-200"
-            />
-          )}
-          <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center">
-            {icon}
-          </span>
-          <span
-            className={cn(
-              "min-w-0 max-w-32 truncate whitespace-nowrap transition-[max-width,opacity] duration-200 ease-linear motion-reduce:transition-none",
-              collapsed
-                ? "pointer-events-none max-w-0 opacity-0"
-                : "opacity-100",
-            )}
+      <TooltipTrigger
+        className="block w-full"
+        render={
+          <Link
+            href={href}
+            aria-current={isActive ? "page" : undefined}
+            className={linkClasses}
           >
-            {label}
-          </span>
-        </Link>
-      </TooltipTrigger>
+            {isActive && (
+              <span
+                aria-hidden
+                className="absolute inset-y-1.5 left-1 w-1 rounded-r-full bg-primary transition-all duration-200"
+              />
+            )}
+            <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center">
+              {icon}
+            </span>
+            <span
+              className={cn(
+                "min-w-0 max-w-32 truncate whitespace-nowrap transition-[max-width,opacity] duration-200 ease-linear motion-reduce:transition-none",
+                collapsed
+                  ? "pointer-events-none max-w-0 opacity-0"
+                  : "opacity-100",
+              )}
+            >
+              {label}
+            </span>
+          </Link>
+        }
+      />
       {collapsed && <TooltipContent side="right">{label}</TooltipContent>}
     </Tooltip>
   );
