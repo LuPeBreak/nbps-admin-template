@@ -19,13 +19,6 @@ import {
 } from "@/components/users/users-search-params";
 import { requireSession } from "@/lib/auth/require-session";
 
-function validRole(
-  role: string | null | undefined,
-): "admin" | "user" | undefined {
-  if (role === "admin" || role === "user") return role;
-  return undefined;
-}
-
 const searchParamsCache = createSearchParamsCache({
   search: searchParser,
   page: pageParser,
@@ -69,9 +62,9 @@ async function UsersTable({
 
   const result = await listUsersAction({
     search: params.search,
-    role: validRole(params.role),
+    role: params.role ?? undefined,
     orderBy: params.orderBy,
-    order: params.order as "asc" | "desc",
+    order: params.order,
     page: params.page,
     pageSize: params.pageSize,
   });

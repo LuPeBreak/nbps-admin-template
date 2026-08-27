@@ -1,8 +1,8 @@
 "use client";
 
 import { X } from "lucide-react";
-import { useQueryState } from "nuqs";
-import { useEffect, useState, useTransition } from "react";
+import { debounce, defaultRateLimit, useQueryStates } from "nuqs";
+import { useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -12,68 +12,83 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { roleParser, searchParser } from "./users-search-params";
+import { pageParser, roleParser, searchParser } from "./users-search-params";
+
+const usersFilterParsers = {
+  page: pageParser,
+  role: roleParser,
+  search: searchParser,
+};
 
 export function UsersDataTableToolbar() {
   const [isPending, startTransition] = useTransition();
 
-  const [search, setSearch] = useQueryState(
-    "search",
-    searchParser.withOptions({ shallow: false, startTransition }),
-  );
+  const [{ role, search }, setFilters] = useQueryStates(usersFilterParsers, {
+    shallow: false,
+    startTransition,
+  });
 
-  const [role, setRole] = useQueryState(
-    "role",
-    roleParser.withOptions({ shallow: false, startTransition }),
-  );
-
-  const [inputValue, setInputValue] = useState(search ?? "");
-
-  useEffect(() => {
-    setInputValue(search ?? "");
-  }, [search]);
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      if (inputValue !== (search ?? "")) {
-        setSearch(inputValue || null);
-      }
-    }, 300);
-
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [inputValue, search, setSearch]);
-
-  const isFiltered = search !== "" || role !== "";
+  const isFiltered = search !== "" || role !== null;
 
   return (
-    <div className="flex flex-1 items-center space-x-2">
+    <div
+      className="flex w-full flex-wrap items-center gap-2 transition-opacity data-[pending]:opacity-60"
+      data-pending={isPending ? "" : undefined}
+      aria-busy={isPending}
+    >
       <Input
         type="search"
         autoComplete="off"
-        placeholder="Buscar usuários..."
-        value={inputValue}
-        onChange={(event) => setInputValue(event.target.value)}
-        className="h-9 w-[150px] lg:w-[250px]"
-        data-pending={isPending ? "" : undefined}
+        aria-label="Buscar usuários por nome ou email"
+        placeholder="Buscar por nome ou email..."
+        value={search}
+        onChange={(event) => {
+          const nextSearch = event.target.value;
+          setFilters(
+            { page: 1, search: nextSearch || null },
+            {
+              limitUrlUpdates:
+                nextSearch === "" ? defaultRateLimit : debounce(300),
+            },
+          );
+        }}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            setFilters(
+              { page: 1, search: event.currentTarget.value || null },
+              { limitUrlUpdates: defaultRateLimit },
+            );
+          }
+        }}
+        className="h-9 w-full sm:w-[250px]"
       />
 
       <Select
-        value={role || ""}
-        onValueChange={(value) => setRole(value === "" ? "" : value)}
+        value={role ?? "all"}
+        onValueChange={(value) => {
+          setFilters(
+            {
+              page: 1,
+              role: value === "admin" || value === "user" ? value : null,
+            },
+            { limitUrlUpdates: defaultRateLimit },
+          );
+        }}
       >
-        <SelectTrigger className="h-9 w-[150px]">
-          <SelectValue placeholder="Todos">
+        <SelectTrigger
+          aria-label="Filtrar por cargo"
+          className="h-9 w-full sm:w-[170px]"
+        >
+          <SelectValue placeholder="Todos os cargos">
             {role === "admin"
               ? "Administrador"
               : role === "user"
                 ? "Usuário"
-                : "Todos"}
+                : "Todos os cargos"}
           </SelectValue>
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">Todos</SelectItem>
+          <SelectItem value="all">Todos os cargos</SelectItem>
           <SelectItem value="admin">Administrador</SelectItem>
           <SelectItem value="user">Usuário</SelectItem>
         </SelectContent>
@@ -83,10 +98,12 @@ export function UsersDataTableToolbar() {
         <Button
           variant="ghost"
           onClick={() => {
-            setSearch("");
-            setRole("");
+            setFilters(
+              { page: 1, role: null, search: null },
+              { limitUrlUpdates: defaultRateLimit },
+            );
           }}
-          className="h-8 px-2 lg:px-3"
+          className="h-9 px-2 lg:px-3"
         >
           Limpar
           <X className="ml-2 h-4 w-4" />

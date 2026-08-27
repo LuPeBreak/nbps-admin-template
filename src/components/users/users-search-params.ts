@@ -1,4 +1,4 @@
-import { parseAsString } from "nuqs/server";
+import { parseAsStringEnum } from "nuqs/server";
 import {
   orderByParser,
   orderParser,
@@ -9,4 +9,6 @@ import {
 
 export { pageParser, pageSizeParser, searchParser, orderByParser, orderParser };
 
-export const roleParser = parseAsString.withDefault("");
+const USER_ROLES = ["admin", "user"] as const;
+
+export const roleParser = parseAsStringEnum([...USER_ROLES]);

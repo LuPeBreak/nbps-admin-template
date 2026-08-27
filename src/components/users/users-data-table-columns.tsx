@@ -2,34 +2,30 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
+import type { DataTableColumnMeta } from "@/components/data-table/data-table-types";
 import { RoleBadge } from "./role-badge";
 import { StatusBadge } from "./status-badge";
 import { UsersDataTableRowActions } from "./users-data-table-row-actions";
+import type { UserTableRow } from "./users-table-types";
 
-export type UserColumn = {
-  id: string;
-  name: string;
-  email: string;
-  role: string | null;
-  banned: boolean | null;
-  createdAt: Date;
-};
-
-export const usersColumns: ColumnDef<UserColumn>[] = [
+export const usersColumns: ColumnDef<UserTableRow>[] = [
   {
     accessorKey: "name",
+    meta: { label: "Nome" } satisfies DataTableColumnMeta,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Nome" />
     ),
   },
   {
     accessorKey: "email",
+    meta: { label: "Email" } satisfies DataTableColumnMeta,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Email" />
     ),
   },
   {
     accessorKey: "role",
+    meta: { label: "Cargo" } satisfies DataTableColumnMeta,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Cargo" />
     ),
@@ -40,6 +36,7 @@ export const usersColumns: ColumnDef<UserColumn>[] = [
   },
   {
     accessorKey: "banned",
+    meta: { label: "Status" } satisfies DataTableColumnMeta,
     header: "Status",
     cell: ({ row }) => {
       const banned = row.getValue("banned") as boolean | null;
@@ -48,6 +45,7 @@ export const usersColumns: ColumnDef<UserColumn>[] = [
   },
   {
     id: "actions",
+    enableHiding: false,
     size: 50,
     cell: ({ row }) => <UsersDataTableRowActions user={row.original} />,
   },

@@ -30,10 +30,10 @@ import { EditUserDialog } from "./edit-user-dialog";
 import { ImpersonateDialog } from "./impersonate-dialog";
 import { ResetPasswordDialog } from "./reset-password-dialog";
 import { UnbanUserDialog } from "./unban-user-dialog";
-import type { UserColumn } from "./users-data-table-columns";
+import type { UserTableRow } from "./users-table-types";
 
 interface UsersDataTableRowActionsProps {
-  user: UserColumn;
+  user: UserTableRow;
 }
 
 export function UsersDataTableRowActions({

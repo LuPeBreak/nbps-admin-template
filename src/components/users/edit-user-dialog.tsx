@@ -27,10 +27,10 @@ import { authClient } from "@/lib/auth/auth-client";
 import { translateAuthError } from "@/lib/auth/translate-auth-error";
 import { isCurrentUser } from "@/lib/user-helpers";
 import { type EditUserInput, EditUserSchema } from "@/validations/user.schema";
-import type { UserColumn } from "./users-data-table-columns";
+import type { UserTableRow } from "./users-table-types";
 
 interface EditUserDialogProps {
-  user: UserColumn;
+  user: UserTableRow;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;

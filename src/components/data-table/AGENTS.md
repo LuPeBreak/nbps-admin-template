@@ -10,7 +10,10 @@ Reusable server-side data table on `@tanstack/react-table` + state sync via `nuq
 - **Canonical Slots**:
   - `toolbar` (left-aligned): Search fields, filters, facets.
   - `tableActions` (right-aligned): Main CTAs ("New User", "Export").
-- **Strict Sort validation**: Validate `orderBy` + sort fields against hardcoded string allowlist in Server Action before Prisma query (prevent SQL injection).
+- **Atomic URL transitions**: When search, filters, sorting, or page size logically return the result set to its beginning, update the changed keys and `page: 1` together with `useQueryStates`.
+- **Explicit Search Contract**: Keep searchable fields in the domain query; never derive search semantics from visible columns.
+- **Strict Sort Validation**: Validate direction and supported `orderBy` fields on the server before building the Prisma query.
+- **View Options Labels**: Column visibility is generic UI state, but user-facing labels belong to the domain. Opt a column in with explicit `meta.label`; keep technical column IDs stable and disable hiding for action columns.
 
 ---
 
@@ -18,8 +21,12 @@ Reusable server-side data table on `@tanstack/react-table` + state sync via `nuq
 
 - `data-table.tsx` (client) — Core table renderer.
 - `data-table-pagination.tsx` (client) — Page controls (10/15/20/30/40/50 size selector) synced with URL search params.
+- `data-table-pagination-utils.ts` (shared) — Pure range calculation for zero results and defensive page clamping.
 - `data-table-column-header.tsx` (client) — Sortable headers. Sort state fetched + synced via parsers from `data-table-base-search-params.ts`.
+- `data-table-view-options.tsx` (client) — Opt-in column visibility using domain labels from column metadata.
 - `data-table-base-search-params.ts` (shared) — Reusable `nuqs` search param defs (`page`, `pageSize`, `search`, `orderBy`, `order`).
+- `data-table-constants.ts` (shared) — Pagination limits reused by URL parsers and server validation.
+- `data-table-types.ts` (shared) — Metadata contract for generic table capabilities.
 
 ---
 
@@ -28,7 +35,7 @@ Reusable server-side data table on `@tanstack/react-table` + state sync via `nuq
 ### 1. Define URL Search Parameters
 Create `src/components/<domain>/<name>-search-params.ts` extending base params:
 ```typescript
-import { parseAsString } from "nuqs/server";
+import { parseAsStringEnum } from "nuqs/server";
 import {
   orderByParser,
   orderParser,
@@ -38,24 +45,25 @@ import {
 } from "@/components/data-table/data-table-base-search-params";
 
 export { pageParser, pageSizeParser, searchParser, orderByParser, orderParser };
-export const roleParser = parseAsString.withDefault("");
+export const roleParser = parseAsStringEnum(["admin", "user"]);
 ```
 
 ### 2. Define Table Columns
-Create `src/components/<domain>/<name>-columns.tsx` using `DataTableColumnHeader`:
+When the row DTO is reused by columns, actions, or dialogs, define it in a neutral domain file such as `<name>-table-types.ts`. Keep columns in `src/components/<domain>/<name>-columns.tsx` and use `DataTableColumnHeader`:
 ```typescript
 import type { ColumnDef } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
+import type { UserTableRow } from "./users-table-types";
 
-export type UserColumn = { id: string; name: string; email: string };
-
-export const usersColumns: ColumnDef<UserColumn>[] = [
+export const usersColumns: ColumnDef<UserTableRow>[] = [
   {
     accessorKey: "name",
+    meta: { label: "Nome" },
     header: ({ column }) => <DataTableColumnHeader column={column} title="Nome" />,
   },
   {
     accessorKey: "email",
+    meta: { label: "E-mail" },
     header: ({ column }) => <DataTableColumnHeader column={column} title="E-mail" />,
   },
 ];

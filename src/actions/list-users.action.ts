@@ -1,9 +1,9 @@
 "use server";
 
+import type { UserTableRow } from "@/components/users/users-table-types";
 import { actionError, validateInput } from "@/lib/actions/action-helpers";
 import { protectedAction } from "@/lib/auth/protected-action";
 import { prisma } from "@/lib/db";
-import type { Role } from "@/lib/db/generated/enums";
 import type { ActionResponse } from "@/lib/errors";
 import { ListUsersSchema } from "@/validations/user.schema";
 
@@ -17,14 +17,7 @@ function isValidSortField(field: string): field is UserSortField {
 }
 
 export interface ListUsersResult {
-  users: {
-    id: string;
-    name: string;
-    email: string;
-    role: Role;
-    banned: boolean | null;
-    createdAt: Date;
-  }[];
+  users: UserTableRow[];
   total: number;
   pageCount: number;
 }
@@ -64,11 +57,11 @@ export const listUsersAction = protectedAction(
     }
 
     try {
-      const [users, total] = await Promise.all([
+      const findUsers = (requestedPage: number) =>
         prisma.user.findMany({
           where,
           orderBy: { [sortField]: order },
-          skip: (page - 1) * pageSize,
+          skip: (requestedPage - 1) * pageSize,
           take: pageSize,
           select: {
             id: true,
@@ -78,16 +71,25 @@ export const listUsersAction = protectedAction(
             banned: true,
             createdAt: true,
           },
-        }),
+        });
+
+      const [initialUsers, total] = await Promise.all([
+        findUsers(page),
         prisma.user.count({ where }),
       ]);
+      let users = initialUsers;
+      const pageCount = Math.ceil(total / pageSize);
+
+      if (pageCount > 0 && page > pageCount) {
+        users = await findUsers(pageCount);
+      }
 
       return {
         success: true as const,
         data: {
           users,
           total,
-          pageCount: Math.ceil(total / pageSize),
+          pageCount,
         },
       };
     } catch (error) {
