@@ -34,35 +34,14 @@ Proxy validates session by querying DB (`auth.api.getSession`), not just cookie 
 ## 🔐 Permission Check Patterns
 
 ### 1. Server-Side Protection (Pages & Layouts)
-`requireSession` at top of Server Component. Auto-redirects unauthenticated → `/sign-in`, unauthorized → `/dashboard`.
+`requireSession` at top of Server Component. Auto-redirects unauthenticated → `/sign-in`, unauthorized → `/dashboard`. Full page recipe: see `src/app/AGENTS.md`.
 
 ```typescript
-import { requireSession } from "@/lib/auth/require-session";
-
-export default async function AdminUsersPage() {
-  // Enforces list users permission, redirects automatically on failure
-  const session = await requireSession([{ resource: "user", action: ["list"] }]);
-  
-  return <UserTable currentUser={session.user} />;
-}
+const session = await requireSession([{ resource: "user", action: ["list"] }]);
 ```
 
 ### 2. Client-Side UX Toggle (Buttons & Tabs)
-Sync in-memory role check from `authClient`:
-
-```typescript
-import { authClient, useSession } from "@/lib/auth";
-
-const { data: session } = useSession();
-if (!session?.user?.role) return null;
-
-const canDelete = authClient.admin.checkRolePermission({
-  role: session.user.role,
-  permissions: { user: ["delete"] },
-});
-
-return <Button disabled={!canDelete}>Delete</Button>;
-```
+Sync in-memory role check via `authClient.admin.checkRolePermission` — hide/disable when denied, never async network checks. Full UI patterns (buttons, row-action dropdowns): see `src/components/AGENTS.md`.
 
 ### 3. Adding a New Permission or Role
 Modify `src/lib/auth/permissions.ts`:

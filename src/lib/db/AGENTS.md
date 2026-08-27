@@ -6,9 +6,7 @@ Prisma v7 PostgreSQL connection (singleton via `globalThis` to survive Next.js H
 
 ## 💎 Golden Rules
 
-- **Actions-Only Access**: Restrict application runtime `prisma.*` queries to Server Actions (`.action.ts`). Never call in pages, layouts, or UI components. Dedicated server-only infrastructure files such as seeds, migrations, and framework adapter configuration are explicit exceptions.
 - **Use Generated Enums**: Import generated Prisma enums from `@/lib/db/generated/enums`. No hardcoded string union types.
-- **Always Validate OrderBy**: Apply allowlist validation to any `orderBy` query param before Prisma.
 
 ---
 
@@ -16,8 +14,8 @@ Prisma v7 PostgreSQL connection (singleton via `globalThis` to survive Next.js H
 
 - `prisma.ts` — PrismaClient singleton using `PrismaPg` adapter.
 - `index.ts` — Barrel file: `export { prisma } from "./prisma"`.
-- `generated/client` — Auto-generated client core.
-- `generated/enums` — Auto-generated enum types (import enums from here).
+- `generated/client.ts` — Auto-generated client core.
+- `generated/enums.ts` — Auto-generated enum types (import enums from here).
 
 ---
 
@@ -68,12 +66,12 @@ const role: "admin" | "user" = "admin";
 
 ## 💻 Environment & Commands
 
-### Setup Commands
-- `pnpm prisma db seed` (or `npm run db:seed`) — Seeds DB with initial admin user.
-- `npm run db:studio` — Opens Prisma Studio (defaults `localhost:5555`).
-- `npx prisma generate` — Regenerates Prisma Client after schema changes.
-- `npx prisma migrate dev --name <name>` — Generates + applies new migration.
+### Database Commands
+- `pnpm db:seed` — Stateful, local/dev only. Targets `DATABASE_URL`; if no user exists with `ADMIN_EMAIL`, creates the initial admin and marks that new account as verified. Existing accounts are left untouched. Confirm the target and authorization first; never report `DATABASE_URL` or `ADMIN_PASSWORD` values.
+- `pnpm db:studio` — Stateful. Opens Prisma Studio against the configured database (defaults to `localhost:5555`); confirm the target and authorization first.
+- `pnpm prisma generate` — Artifact-generating. Regenerates the ignored Prisma Client in `src/lib/db/generated/` after schema changes; CI runs the same command.
+- `pnpm prisma migrate dev --name <name>` — Stateful and artifact-generating. Creates a migration and applies it to the configured development database; confirm the target and migration name first.
 
 ### Database Local Docker Setup
-- `docker compose up -d` — Starts PostgreSQL local container on port `5433`.
-- `docker compose down` — Stops the PostgreSQL container.
+- `docker compose up -d` — Stateful. Starts the local PostgreSQL container on port `5433`.
+- `docker compose down` — Stateful. Stops the local PostgreSQL container.

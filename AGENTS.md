@@ -4,7 +4,7 @@
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 
 Quick reference for Next.js 16:
-- Middleware now called **Proxy** (`proxy.ts`, not `middleware.ts`). API identical.
+- Middleware is now called **Proxy** (`proxy.ts`, not `middleware.ts`); review runtime and configuration differences before reusing middleware assumptions.
 - `cookies()` and `headers()` now **async** — always `await` them.
 - `params` and `searchParams` in pages/layouts **async**.
 - Turbopack default dev bundler.
@@ -22,24 +22,32 @@ Canonical source of truth: global architectural rules, conventions, developer pr
 
 ### 1. Data Access & Environment Safety
 - **Database Boundary**: Restrict application runtime `prisma.*` queries to Server Actions (`.action.ts`). Never call them in pages, layouts, route UI, or components. Dedicated server-only infrastructure files such as seeds, migrations, and framework adapter configuration are explicit exceptions.
-- **Environment Safety**: Never expose server-side secret keys (DB credentials, API tokens) in client-side config block of `src/env.ts`.
+- **Environment Safety**: Never expose server-side secret keys (DB credentials, API tokens, SMTP credentials) in client-side config block of `src/env.ts` or in logs and reports.
 
 ### 2. Double-Layer Protection Principles
 - **Double-Layer Validation**: Strict Zod schema validation server-side for all custom Server Actions, paired with React Hook Form client-side for feedback. Note: Better Auth native client methods (`authClient.admin.*`) handle own validation internally — no duplicate.
 - **Double-Layer Permissions**: Enforce authorization checks in both layers. Server-side checks are mandatory for security. Client-side checks strictly hide or disable UI for UX.
 
 ### 3. Code Cleanliness & Modularity
-- **Clean Exports**: Named exports for helper components, actions, services. Default exports only for Next.js Page and Layout entrypoints.
+- **Clean Exports**: Named exports for helper components, actions, services. Default exports only for Next.js file-convention entrypoints (`page`, `layout`, `error`, `not-found`, `loading`); `route.ts` exports named HTTP method handlers.
 - **No Barrel Logic**: Never place business logic in barrel/index files (`index.ts`). Re-export symbols only.
 
 ### 4. Developer Protocol & Git
-- **Step-by-Step Execution**: Implement + test one small feature slice at a time. No mass updates across modules.
-- **Clean Commits**: Commit to local branches, merge into `development` fast-forward only (`git merge --ff-only`). Concise English Conventional Commits.
-- **No "Fix" Commits**: No quick "fix" commits for bugs introduced same session. Amend or squash — single atomic commit.
-- **Atomic Commits**: One commit = one complete, tested, approved feature slice (Action + UI when both part of slice).
-- **After Commit = Done**: Commit = production quality. No "commit now, fix later."
-- **Human Approval**: Never commit without explicit human approval of diff.
-- **Pre-commit Verification**: Before review, run `pnpm check` or `npm run check` + tests relevant to changed behavior (per project commands or local `AGENTS.md`). Never `--no-verify`.
+- **Step-by-Step Execution**: Implement + test one small feature slice at a time. No mass code updates across modules. A cross-module documentation-only consistency pass counts as its own slice.
+- **Documentation Pass**: Every material change requires reviewing the full applicable `AGENTS.md` chain before the work is complete. Update an owning guide only when the change alters durable knowledge for its scope: purpose or ownership, durable structure, a contract or workflow, a permission or restriction, a side effect, a verification command, or a non-obvious operational rule. If contracts and rules stay unchanged, leave the guides untouched; never use `AGENTS.md` as an implementation diary.
+- **Documentation Chain**: Before editing a file, read every applicable `AGENTS.md` along its path: repository root → each intermediate guide → nearest guide → target file. Local guidance specializes its parents; it must not restate or silently weaken higher-level invariants. Any intentional exception must be explicit, justified, and authorized.
+- **Git Workflow**: One feature branch per PR. Integration happens exclusively via squash merge into `main`. One PR = one complete, verified, approved feature slice; the squash commit message describes the delivered slice concisely (single-line subject preferred) and never concatenates checkpoint commit messages. Concise Conventional Commits.
+- **Checkpoint Commits**: On a feature branch, intermediate commits are reversible work checkpoints (implementation, tests, fixes, cleanup). Each checkpoint must stay coherent enough for revert, diagnosis and review; never use them to hide broken tests or known debt as "commit now, fix later".
+- **Atomicity at Integration**: Quality gates concentrate before the squash merge: green CI, relevant verification executed, and all required approvals obtained.
+- **Separate Capabilities**: Commit, push and merge have independent gates. Never assume one grants another. Never rewrite published/shared history (force-push) without explicit authorization.
+- **Human Approval**: Explicit human approval is required to push/open the PR, to mark it ready, and to squash-merge — each evaluated against the current full branch diff. Checkpoint commits inside a feature branch need no per-commit approval during an authorized task; they are reviewed collectively at these gates.
+- **Command Classification** (source of truth: `package.json`; never invent scripts):
+  - **Read-only checks** (never write tracked source; may refresh gitignored caches such as `.tsbuildinfo`): `pnpm lint` (`biome check`), `pnpm typecheck` (`tsc --noEmit`), `pnpm test` (`vitest run`).
+  - **Mutating fixers** (rewrite files selected by `biome.json`, including configs outside `src/`; `src/components/ui` stays excluded): `pnpm check` (`biome check --write` + typecheck) and `pnpm format` (`biome format --write`). Never treat them as verification; run only when the rewrite is intended, then inspect the resulting diff.
+  - **Artifact-generating**: `pnpm build` creates the ignored `.next/` output and may execute build-time code that depends on configured environment or services; run when routes, config, or bundling are affected.
+  - **Stateful/database**: `pnpm db:studio` and `pnpm db:seed` connect to the configured database; confirm the environment, target, and authorization before running them. Database-specific effects and commands belong in `src/lib/db/AGENTS.md`.
+- **Pre-review Verification**: Before review, run the read-only checks relevant to the change plus tests covering changed behavior. Never `--no-verify`.
+- **Evidence Reporting**: Report verification honestly: exact command + directory + result; relevant tests chosen; manual checks performed; omissions with reason; files auto-modified by tools; final working-tree state; anything outside scope. Never claim verification that did not run.
 - **Test Scope**:
   - Run existing relevant tests for every behavior change.
   - Add or update tests for business rules, permissions, validation, bug fixes when test infrastructure exists.
@@ -103,20 +111,23 @@ Before concluding:
 - confirm no speculative abstraction/dependency added;
 - confirm change did not expand requested scope.
 
+### 8. Project Conventions
+- **Language**: Code, comments, documentation, and commits in English; all user-facing text (UI copy, emails, validation messages) in Portuguese (PT-BR).
+
 ---
 
 ## 🚫 Common AI Anti-Patterns to Avoid
-1. **Renaming Proxy**: Never rename `src/proxy.ts` to `middleware.ts` or create traditional middleware.
+1. **Renaming Proxy**: Never rename `src/proxy.ts` to `middleware.ts`, create traditional middleware, or assume Edge runtime for Proxy (it defaults to Node.js in Next.js 16).
 2. **Components in App Folder**: `src/app/` exclusively for routing (Page/Layout). All reusable UI components → `src/components/`.
 3. **Full-Page Client Components**: Never mark entire pages/layouts `"use client"`. Keep Server Components, extract interactive nodes as small Client Components. Only exception: `error.tsx` must be Client Component.
 4. **Hardcoded Hex Colors**: Never custom hex (e.g. `bg-[#ff0000]`) in Tailwind/JSX. Use semantic CSS variables in `globals.css`.
-5. **Outdated API Patterns**: Respect configured versions: Next.js 16, Prisma 7, Better Auth 1.x, Tailwind CSS v4. No legacy patterns.
+5. **Outdated API Patterns**: Respect configured versions: Next.js 16, Prisma 7, Better Auth 1.x, Tailwind CSS v4, Base UI. No legacy patterns.
 
 ---
 
 ## 🗺️ Module AGENTS.md Index
 
-When editing code in specific folders, **MUST** read local `AGENTS.md` in that directory for design patterns + details:
+This index is a navigation aid, not a shortcut: follow the Documentation Chain above and read every guide from the root through the target path.
 
 | Module | Path | Description & Focus |
 |:---|:---|:---|
