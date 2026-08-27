@@ -37,6 +37,7 @@ export function DataTableColumnHeader<TData, TValue>({
   const [isPending, startTransition] = useTransition();
 
   const [{ orderBy, order }, setSort] = useQueryStates(sortParsers, {
+    history: "push",
     shallow: false,
     startTransition,
   });

@@ -36,6 +36,7 @@ export function DataTablePagination({
       pageSize: pageSizeParser,
     },
     {
+      history: "push",
       startTransition,
       shallow: false,
     },

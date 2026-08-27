@@ -56,7 +56,7 @@ export function UsersDataTableToolbar() {
           if (event.key === "Enter") {
             setFilters(
               { page: 1, search: event.currentTarget.value || null },
-              { limitUrlUpdates: defaultRateLimit },
+              { history: "push", limitUrlUpdates: defaultRateLimit },
             );
           }
         }}
@@ -71,7 +71,7 @@ export function UsersDataTableToolbar() {
               page: 1,
               role: value === "admin" || value === "user" ? value : null,
             },
-            { limitUrlUpdates: defaultRateLimit },
+            { history: "push", limitUrlUpdates: defaultRateLimit },
           );
         }}
       >
@@ -100,7 +100,7 @@ export function UsersDataTableToolbar() {
           onClick={() => {
             setFilters(
               { page: 1, role: null, search: null },
-              { limitUrlUpdates: defaultRateLimit },
+              { history: "push", limitUrlUpdates: defaultRateLimit },
             );
           }}
           className="h-9 px-2 lg:px-3"
