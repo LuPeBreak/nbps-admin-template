@@ -4,7 +4,7 @@
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 
 Quick reference for Next.js 16:
-- Middleware now called **Proxy** (`proxy.ts`, not `middleware.ts`). API identical.
+- Middleware is now called **Proxy** (`proxy.ts`, not `middleware.ts`); review runtime and configuration differences before reusing middleware assumptions.
 - `cookies()` and `headers()` now **async** — always `await` them.
 - `params` and `searchParams` in pages/layouts **async**.
 - Turbopack default dev bundler.
@@ -34,19 +34,19 @@ Canonical source of truth: global architectural rules, conventions, developer pr
 
 ### 4. Developer Protocol & Git
 - **Step-by-Step Execution**: Implement + test one small feature slice at a time. No mass code updates across modules. A cross-module documentation-only consistency pass counts as its own slice.
-- **Doc Pass**: A material code change updates the owning module's `AGENTS.md` in the same PR. Before editing, walk root `AGENTS.md` → nearest nested `AGENTS.md` → actual code.
-- **Instruction Precedence**: Nested `AGENTS.md` files specialize the root; they never weaken it. Conflicts are declared exceptions with reason, never silent overrides.
-- **Git Workflow**: One feature branch per PR. Integration happens exclusively via squash merge into `main`. One PR = one complete, tested, approved feature slice; the squash commit message describes the delivered slice concisely (single-line subject preferred) and never concatenates checkpoint commit messages. Concise Conventional Commits.
+- **Documentation Pass**: Every material change requires reviewing the full applicable `AGENTS.md` chain before the work is complete. Update an owning guide only when the change alters durable knowledge for its scope: purpose or ownership, durable structure, a contract or workflow, a permission or restriction, a side effect, a verification command, or a non-obvious operational rule. If contracts and rules stay unchanged, leave the guides untouched; never use `AGENTS.md` as an implementation diary.
+- **Documentation Chain**: Before editing a file, read every applicable `AGENTS.md` along its path: repository root → each intermediate guide → nearest guide → target file. Local guidance specializes its parents; it must not restate or silently weaken higher-level invariants. Any intentional exception must be explicit, justified, and authorized.
+- **Git Workflow**: One feature branch per PR. Integration happens exclusively via squash merge into `main`. One PR = one complete, verified, approved feature slice; the squash commit message describes the delivered slice concisely (single-line subject preferred) and never concatenates checkpoint commit messages. Concise Conventional Commits.
 - **Checkpoint Commits**: On a feature branch, intermediate commits are reversible work checkpoints (implementation, tests, fixes, cleanup). Each checkpoint must stay coherent enough for revert, diagnosis and review; never use them to hide broken tests or known debt as "commit now, fix later".
 - **Atomicity at Integration**: Quality gates concentrate before the squash merge: green CI, relevant verification executed, and all required approvals obtained.
 - **Separate Capabilities**: Commit, push and merge have independent gates. Never assume one grants another. Never rewrite published/shared history (force-push) without explicit authorization.
 - **Human Approval**: Explicit human approval is required to push/open the PR, to mark it ready, and to squash-merge — each evaluated against the current full branch diff. Checkpoint commits inside a feature branch need no per-commit approval during an authorized task; they are reviewed collectively at these gates.
 - **Command Classification** (source of truth: `package.json`; never invent scripts):
   - **Read-only checks** (never write tracked source; may refresh gitignored caches such as `.tsbuildinfo`): `pnpm lint` (`biome check`), `pnpm typecheck` (`tsc --noEmit`), `pnpm test` (`vitest run`).
-  - **Mutants** (rewrite any file selected by `biome.json`, including configs outside `src/`; `src/components/ui` stays excluded): `pnpm check` (= `biome check --write` + typecheck) and `pnpm format`. Never treat them as verification; run only when the rewrite is intended, then inspect the resulting diff.
-  - **Artifact-generating**: `pnpm build` writes gitignored output only; run when routes, config, or bundling are affected.
-  - **Stateful**: `db:studio`, `db:seed` touch database/dev services; require explicit environment and authorization. `db:seed` targets the `DATABASE_URL` database and creates the initial admin account only when no user exists with `ADMIN_EMAIL`; the created account gets `emailVerified: true` and existing accounts are left untouched — local/dev only; never log or report credentials.
-- **Pre-commit Verification**: Before review, run the read-only checks relevant to the change plus tests covering changed behavior. Never `--no-verify`.
+  - **Mutating fixers** (rewrite files selected by `biome.json`, including configs outside `src/`; `src/components/ui` stays excluded): `pnpm check` (`biome check --write` + typecheck) and `pnpm format` (`biome format --write`). Never treat them as verification; run only when the rewrite is intended, then inspect the resulting diff.
+  - **Artifact-generating**: `pnpm build` creates the ignored `.next/` output and may execute build-time code that depends on configured environment or services; run when routes, config, or bundling are affected.
+  - **Stateful/database**: `pnpm db:studio` and `pnpm db:seed` connect to the configured database; confirm the environment, target, and authorization before running them. Database-specific effects and commands belong in `src/lib/db/AGENTS.md`.
+- **Pre-review Verification**: Before review, run the read-only checks relevant to the change plus tests covering changed behavior. Never `--no-verify`.
 - **Evidence Reporting**: Report verification honestly: exact command + directory + result; relevant tests chosen; manual checks performed; omissions with reason; files auto-modified by tools; final working-tree state; anything outside scope. Never claim verification that did not run.
 - **Test Scope**:
   - Run existing relevant tests for every behavior change.
@@ -127,7 +127,7 @@ Before concluding:
 
 ## 🗺️ Module AGENTS.md Index
 
-When editing code in specific folders, **MUST** read local `AGENTS.md` in that directory for design patterns + details (nested files inherit the root guide and may only make rules stricter):
+This index is a navigation aid, not a shortcut: follow the Documentation Chain above and read every guide from the root through the target path.
 
 | Module | Path | Description & Focus |
 |:---|:---|:---|

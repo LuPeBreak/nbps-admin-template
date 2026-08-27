@@ -1,7 +1,5 @@
 # Components Module (src/components/)
 
-This file inherits the root `AGENTS.md` and documents only additional rules for this directory.
-
 Reusable UI components (Shadcn UI style + Tailwind CSS v4). Uses Base UI primitives instead of Radix (no `asChild` prop).
 
 ---

@@ -1,8 +1,6 @@
 # Server Actions Module (src/actions/)
 
-This file inherits the root `AGENTS.md` and documents only additional rules for this directory.
-
-Server Actions handle application data mutations + queries. All application runtime `prisma.*` operations must run inside an action — never directly in layouts, pages, or components (infrastructure scripts like seeds and migrations are explicit exceptions).
+Server Actions own application runtime data mutations and queries.
 
 ---
 

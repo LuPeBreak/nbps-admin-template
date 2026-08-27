@@ -1,7 +1,5 @@
 # Validations Module (src/validations/)
 
-This file inherits the root `AGENTS.md` and documents only additional rules for this directory.
-
 Zod Schemas = single source of truth for input validation. Server (Server Actions input) + client (React Hook Form resolvers).
 
 ---

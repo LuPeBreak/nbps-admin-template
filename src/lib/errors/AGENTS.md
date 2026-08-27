@@ -1,7 +1,5 @@
 # Errors Module (src/lib/errors/)
 
-This file inherits the root `AGENTS.md` and documents only additional rules for this directory.
-
 Return contract for all Server Actions: `ActionResponse<T>` type + `ActionErrorCode` taxonomy.
 
 ---
