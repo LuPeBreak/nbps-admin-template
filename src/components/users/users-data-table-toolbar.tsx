@@ -2,7 +2,8 @@
 
 import { X } from "lucide-react";
 import { debounce, defaultRateLimit, useQueryStates } from "nuqs";
-import { useTransition } from "react";
+import { useEffect, useTransition } from "react";
+import { DATA_TABLE_MAX_SEARCH_LENGTH } from "@/components/data-table/data-table-constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -12,7 +13,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { pageParser, roleParser, searchParser } from "./users-search-params";
+import {
+  normalizeUsersSearch,
+  pageParser,
+  roleParser,
+  searchParser,
+} from "./users-search-params";
 
 const usersFilterParsers = {
   page: pageParser,
@@ -28,6 +34,17 @@ export function UsersDataTableToolbar() {
     startTransition,
   });
 
+  const normalizedSearch = normalizeUsersSearch(search);
+
+  useEffect(() => {
+    if (search === normalizedSearch) return;
+
+    void setFilters(
+      { page: 1, search: normalizedSearch || null },
+      { history: "replace", limitUrlUpdates: defaultRateLimit },
+    );
+  }, [normalizedSearch, search, setFilters]);
+
   const isFiltered = search !== "" || role !== null;
 
   return (
@@ -41,9 +58,10 @@ export function UsersDataTableToolbar() {
         autoComplete="off"
         aria-label="Buscar usuários por nome ou email"
         placeholder="Buscar por nome ou email..."
+        maxLength={DATA_TABLE_MAX_SEARCH_LENGTH}
         value={search}
         onChange={(event) => {
-          const nextSearch = event.target.value;
+          const nextSearch = normalizeUsersSearch(event.target.value);
           setFilters(
             { page: 1, search: nextSearch || null },
             {
@@ -54,8 +72,9 @@ export function UsersDataTableToolbar() {
         }}
         onKeyDown={(event) => {
           if (event.key === "Enter") {
+            const nextSearch = normalizeUsersSearch(event.currentTarget.value);
             setFilters(
-              { page: 1, search: event.currentTarget.value || null },
+              { page: 1, search: nextSearch || null },
               { history: "push", limitUrlUpdates: defaultRateLimit },
             );
           }

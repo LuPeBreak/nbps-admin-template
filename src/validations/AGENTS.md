@@ -10,6 +10,7 @@ Zod Schemas = single source of truth for input validation. Server (Server Action
 - **PascalCase & Suffix Casing**: Export schemas PascalCase ending `Schema`.
 - **Derived Input Types**: Export inference types with `Input` suffix. Use `z.input<typeof Schema>` for raw form/action input when the schema transforms, defaults, or coerces values. Use `z.output<typeof Schema>` or `z.infer<typeof Schema>` for validated output.
 - **Portuguese Validation Messages**: Error messages in PT-BR for user-friendly UI warnings.
+- **Shared Query Limits**: Reuse the domain's shared constants for query limits in schemas; client-side normalization may improve UX, but server validation remains authoritative.
 
 ---
 

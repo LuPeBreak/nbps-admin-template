@@ -1,5 +1,18 @@
 import { describe, expect, it } from "vitest";
-import { getPaginationRange } from "./data-table-pagination-utils";
+import {
+  getEffectivePage,
+  getPaginationRange,
+} from "./data-table-pagination-utils";
+
+describe("getEffectivePage", () => {
+  it("normalizes an out-of-range page to the last valid page", () => {
+    expect(getEffectivePage(99, 3)).toBe(3);
+  });
+
+  it("keeps empty results on page one", () => {
+    expect(getEffectivePage(99, 0)).toBe(1);
+  });
+});
 
 describe("getPaginationRange", () => {
   it("represents an empty result without an inverted range", () => {

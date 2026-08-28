@@ -11,8 +11,10 @@ Reusable server-side data table on `@tanstack/react-table` + state sync via `nuq
   - `toolbar` (left-aligned): Search fields, filters, facets.
   - `tableActions` (right-aligned): Main CTAs ("New User", "Export").
 - **Atomic URL transitions**: When search, filters, sorting, or page size logically return the result set to its beginning, update the changed keys and `page: 1` together with `useQueryStates`.
+- **Canonical Effective Page**: A paginated list action returns the effective page after counting results. If the requested page is outside the result set (including an empty result set), the route canonicalizes the URL with a guarded server `redirect(..., "replace")` before rendering so rows, labels, controls, and URL agree.
 - **Navigation History**: Use `history: "push"` for discrete table navigation such as pagination, selects, clearing filters, and sorting. Keep debounced keystrokes on the default `replace` behavior so browser history remains useful.
 - **Explicit Search Contract**: Keep searchable fields in the domain query; never derive search semantics from visible columns.
+- **Bounded Search**: Keep a domain search length limit in one shared constant, enforce it in the server schema, and normalize the client input (including pasted/manual URL values) before writing URL state. Keep the toolbar available when server validation reports an invalid query.
 - **Strict Sort Validation**: Validate direction and supported `orderBy` fields on the server before building the Prisma query.
 - **View Options Labels**: Column visibility is generic UI state, but user-facing labels belong to the domain. Opt a column in with explicit `meta.label`; keep technical column IDs stable and disable hiding for action columns.
 
@@ -22,11 +24,11 @@ Reusable server-side data table on `@tanstack/react-table` + state sync via `nuq
 
 - `data-table.tsx` (client) — Core table renderer.
 - `data-table-pagination.tsx` (client) — Page controls (10/15/20/30/40/50 size selector) synced with URL search params.
-- `data-table-pagination-utils.ts` (shared) — Pure range calculation for zero results and defensive page clamping.
+- `data-table-pagination-utils.ts` (shared) — Pure effective-page/range calculation for zero results and defensive page clamping.
 - `data-table-column-header.tsx` (client) — Sortable headers. Sort state fetched + synced via parsers from `data-table-base-search-params.ts`.
 - `data-table-view-options.tsx` (client) — Opt-in column visibility using domain labels from column metadata.
 - `data-table-base-search-params.ts` (shared) — Reusable `nuqs` search param defs (`page`, `pageSize`, `search`, `orderBy`, `order`).
-- `data-table-constants.ts` (shared) — Pagination limits reused by URL parsers and server validation.
+- `data-table-constants.ts` (shared) — Pagination and search limits reused by URL parsers, client normalization, and server validation.
 - `data-table-types.ts` (shared) — Metadata contract for generic table capabilities.
 
 ---

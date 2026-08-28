@@ -1,5 +1,6 @@
 "use server";
 
+import { getEffectivePage } from "@/components/data-table/data-table-pagination-utils";
 import type { UserTableRow } from "@/components/users/users-table-types";
 import { actionError, validateInput } from "@/lib/actions/action-helpers";
 import { protectedAction } from "@/lib/auth/protected-action";
@@ -20,6 +21,7 @@ export interface ListUsersResult {
   users: UserTableRow[];
   total: number;
   pageCount: number;
+  page: number;
 }
 
 export const listUsersAction = protectedAction(
@@ -77,11 +79,12 @@ export const listUsersAction = protectedAction(
         findUsers(page),
         prisma.user.count({ where }),
       ]);
-      let users = initialUsers;
       const pageCount = Math.ceil(total / pageSize);
+      const effectivePage = getEffectivePage(page, pageCount);
+      let users = initialUsers;
 
-      if (pageCount > 0 && page > pageCount) {
-        users = await findUsers(pageCount);
+      if (effectivePage !== page) {
+        users = await findUsers(effectivePage);
       }
 
       return {
@@ -90,6 +93,7 @@ export const listUsersAction = protectedAction(
           users,
           total,
           pageCount,
+          page: effectivePage,
         },
       };
     } catch (error) {

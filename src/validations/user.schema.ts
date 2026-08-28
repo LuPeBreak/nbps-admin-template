@@ -2,6 +2,7 @@ import { z } from "zod";
 import {
   DATA_TABLE_MAX_PAGE,
   DATA_TABLE_MAX_PAGE_SIZE,
+  DATA_TABLE_MAX_SEARCH_LENGTH,
 } from "@/components/data-table/data-table-constants";
 import { capitalizeName } from "@/lib/utils/capitalize-name";
 
@@ -99,7 +100,10 @@ export const ListUsersSchema = z.object({
   search: z
     .string()
     .trim()
-    .max(100, "A busca deve ter no máximo 100 caracteres.")
+    .max(
+      DATA_TABLE_MAX_SEARCH_LENGTH,
+      `A busca deve ter no máximo ${DATA_TABLE_MAX_SEARCH_LENGTH} caracteres.`,
+    )
     .optional(),
   role: z.preprocess(
     (val) => (val === "" ? undefined : val),

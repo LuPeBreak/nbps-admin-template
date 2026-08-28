@@ -1,5 +1,6 @@
+import { redirect } from "next/navigation";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
-import { createSearchParamsCache } from "nuqs/server";
+import { createSearchParamsCache, createSerializer } from "nuqs/server";
 import { Suspense } from "react";
 import { listUsersAction } from "@/actions/list-users.action";
 import { DashboardPageHeader } from "@/components/dashboard";
@@ -19,14 +20,16 @@ import {
 } from "@/components/users/users-search-params";
 import { requireSession } from "@/lib/auth/require-session";
 
-const searchParamsCache = createSearchParamsCache({
+const usersSearchParams = {
   search: searchParser,
   page: pageParser,
   pageSize: pageSizeParser,
   orderBy: orderByParser,
   order: orderParser,
   role: roleParser,
-});
+};
+const searchParamsCache = createSearchParamsCache(usersSearchParams);
+const serializeUsersSearchParams = createSerializer(usersSearchParams);
 
 interface PageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -58,7 +61,8 @@ async function UsersTable({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const params = searchParamsCache.parse(await searchParams);
+  const rawSearchParams = await searchParams;
+  const params = searchParamsCache.parse(rawSearchParams);
 
   const result = await listUsersAction({
     search: params.search,
@@ -71,13 +75,37 @@ async function UsersTable({
 
   if (!result.success || !result.data) {
     return (
-      <div className="rounded-md border border-destructive/50 bg-destructive/5 p-4 text-sm text-destructive">
-        {result.success ? "" : result.error.message}
+      <div className="space-y-4">
+        <UsersDataTableToolbar />
+        <div className="rounded-md border border-destructive/50 bg-destructive/5 p-4 text-sm text-destructive">
+          {result.success ? "" : result.error.message}
+        </div>
       </div>
     );
   }
 
-  const { users, total, pageCount } = result.data;
+  const { users, total, pageCount, page: effectivePage } = result.data;
+  const rawPage = rawSearchParams.page;
+  const rawPageIsCanonical =
+    rawPage === undefined ||
+    (typeof rawPage === "string" && rawPage === String(params.page));
+
+  if (effectivePage !== params.page || !rawPageIsCanonical) {
+    const baseSearchParams = new URLSearchParams();
+    for (const [key, value] of Object.entries(rawSearchParams)) {
+      if (value === undefined) continue;
+      if (Array.isArray(value)) {
+        for (const item of value) baseSearchParams.append(key, item);
+      } else {
+        baseSearchParams.append(key, value);
+      }
+    }
+
+    const canonicalQuery = serializeUsersSearchParams(baseSearchParams, {
+      page: effectivePage,
+    });
+    redirect(`/dashboard/admin/users${canonicalQuery}`, "replace");
+  }
 
   return (
     <DataTable
