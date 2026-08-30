@@ -19,6 +19,7 @@ import {
   searchParser,
 } from "@/components/users/users-search-params";
 import { requireSession } from "@/lib/auth/require-session";
+import type { Role } from "@/lib/db/generated/enums";
 
 const usersSearchParams = {
   search: searchParser,
@@ -36,7 +37,10 @@ interface PageProps {
 }
 
 export default async function AdminUsersPage({ searchParams }: PageProps) {
-  await requireSession([{ resource: "user", action: ["list"] }]);
+  const session = await requireSession([
+    { resource: "user", action: ["list"] },
+  ]);
+  const role = session.user.role as Role;
 
   return (
     <NuqsAdapter>
@@ -49,7 +53,11 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
         <Suspense
           fallback={<div className="h-96 animate-pulse rounded-md bg-muted" />}
         >
-          <UsersTable searchParams={searchParams} />
+          <UsersTable
+            currentUserId={session.user.id}
+            role={role}
+            searchParams={searchParams}
+          />
         </Suspense>
       </div>
     </NuqsAdapter>
@@ -57,8 +65,12 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
 }
 
 async function UsersTable({
+  currentUserId,
+  role,
   searchParams,
 }: {
+  currentUserId: string;
+  role: Role;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const rawSearchParams = await searchParams;
@@ -111,10 +123,11 @@ async function UsersTable({
     <DataTable
       columns={usersColumns}
       data={users}
+      meta={{ currentUserId, role }}
       pageCount={pageCount}
       totalCount={total}
       toolbar={<UsersDataTableToolbar />}
-      tableActions={<CreateUsersButton />}
+      tableActions={<CreateUsersButton role={role} />}
     />
   );
 }

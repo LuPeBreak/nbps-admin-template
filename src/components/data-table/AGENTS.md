@@ -17,6 +17,8 @@ Reusable server-side data table on `@tanstack/react-table` + state sync via `nuq
 - **Bounded Search**: Keep a domain search length limit in one shared constant, enforce it in the server schema, and normalize the client input (including pasted/manual URL values) before writing URL state. Keep the toolbar available when server validation reports an invalid query.
 - **Strict Sort Validation**: Validate direction and supported `orderBy` fields on the server before building the Prisma query.
 - **View Options Labels**: Column visibility is generic UI state, but user-facing labels belong to the domain. Opt a column in with explicit `meta.label`; keep technical column IDs stable and disable hiding for action columns.
+- **Wide Table Containment**: Keep `min-w-max` on wide tables when readability requires it, but ensure the nearest flex item that owns the content area has `min-w-0`. Horizontal scrolling belongs to the table container, not the document.
+- **Hydration-Stable Domain Meta**: Permission-gated table actions and cells must receive request-stable role/current-user context from the protected Server Component, using serializable props and `DataTable`'s `meta` option. Do not derive their initial presence from an asynchronously hydrated client session hook.
 
 ---
 

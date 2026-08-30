@@ -2,21 +2,21 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { authClient, useSession } from "@/lib/auth";
+import { authClient } from "@/lib/auth";
 import type { Role } from "@/lib/db/generated/enums";
 import { CreateUserDialog } from "./create-user-dialog";
 
-export function CreateUsersButton() {
-  const [open, setOpen] = useState(false);
-  const { data: session } = useSession();
-  const role = session?.user?.role as Role | undefined;
+interface CreateUsersButtonProps {
+  role: Role;
+}
 
-  const canCreate = role
-    ? authClient.admin.checkRolePermission({
-        role,
-        permissions: { user: ["create"] },
-      })
-    : false;
+export function CreateUsersButton({ role }: CreateUsersButtonProps) {
+  const [open, setOpen] = useState(false);
+
+  const canCreate = authClient.admin.checkRolePermission({
+    role,
+    permissions: { user: ["create"] },
+  });
 
   if (!canCreate) return null;
 

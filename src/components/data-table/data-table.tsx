@@ -4,6 +4,7 @@ import {
   type ColumnDef,
   flexRender,
   getCoreRowModel,
+  type TableMeta,
   useReactTable,
   type VisibilityState,
 } from "@tanstack/react-table";
@@ -27,6 +28,7 @@ interface DataTableProps<TData, TValue> {
   totalCount: number;
   toolbar?: React.ReactNode;
   tableActions?: React.ReactNode;
+  meta?: TableMeta<TData>;
 }
 
 export function DataTable<TData, TValue>({
@@ -36,6 +38,7 @@ export function DataTable<TData, TValue>({
   totalCount,
   toolbar,
   tableActions,
+  meta,
 }: DataTableProps<TData, TValue>) {
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
 
@@ -46,6 +49,7 @@ export function DataTable<TData, TValue>({
     manualPagination: true,
     manualFiltering: true,
     manualSorting: true,
+    meta,
     onColumnVisibilityChange: setColumnVisibility,
     state: { columnVisibility },
     getCoreRowModel: getCoreRowModel(),

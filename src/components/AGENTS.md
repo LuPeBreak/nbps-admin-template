@@ -11,6 +11,8 @@ Reusable UI components (Shadcn UI style + Tailwind CSS v4). Uses Base UI primiti
 - **Named Exports**: Named exports for all helper components.
 - **Keep Pages Clean**: Components → `src/components/`. `src/app/` strictly Next.js routing.
 - **Client-Side Permission Checks**: Action buttons (e.g. create) + table dropdowns (row actions) must verify permissions client-side for solid UX. Sync check via `authClient.admin.checkRolePermission`. Hide/disable unauthorized; hide entire dropdown cell if all actions restricted.
+- **Hydration-Stable Permission Inputs**: When a protected Server Component already has the validated session, pass the role and current user ID to SSR-rendered Client Components as serializable props. Use those stable inputs for the initial permission-gated tree; do not make the first render depend on an asynchronously hydrated `useSession()` result.
+- **Base UI Menu Labels**: `DropdownMenuLabel` wraps `Menu.GroupLabel` and must be nested inside `DropdownMenuGroup` (or the corresponding radio group) together with the items it labels.
 
 ---
 
@@ -80,14 +82,10 @@ const isMe = isCurrentUser(session, user.id);
 Actions requiring specific resource permissions → sync client check:
 
 ```typescript
-import { authClient, useSession } from "@/lib/auth";
+import { authClient } from "@/lib/auth";
+import type { Role } from "@/lib/db/generated/enums";
 
-export function CreateItemButton() {
-  const { data: session } = useSession();
-  const role = session?.user?.role;
-
-  if (!role) return null;
-
+export function CreateItemButton({ role }: { role: Role }) {
   const canCreate = authClient.admin.checkRolePermission({
     role,
     permissions: { item: ["create"] },
@@ -102,12 +100,14 @@ export function CreateItemButton() {
 Table actions (row actions): check individual actions, hide dropdown trigger entirely if user has no permissions:
 
 ```typescript
-export function ItemRowActions({ item }) {
-  const { data: session } = useSession();
-  const role = session?.user?.role;
+import { authClient } from "@/lib/auth";
+import type { Role } from "@/lib/db/generated/enums";
 
-  if (!role) return null;
+interface Item {
+  id: string;
+}
 
+export function ItemRowActions({ item, role }: { item: Item; role: Role }) {
   const canEdit = authClient.admin.checkRolePermission({ role, permissions: { item: ["update"] } });
   const canDelete = authClient.admin.checkRolePermission({ role, permissions: { item: ["delete"] } });
 

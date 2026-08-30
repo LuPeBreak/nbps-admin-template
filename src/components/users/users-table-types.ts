@@ -8,3 +8,8 @@ export interface UserTableRow {
   banned: boolean | null;
   createdAt: Date;
 }
+
+export interface UsersTableMeta {
+  currentUserId: string;
+  role: Role;
+}

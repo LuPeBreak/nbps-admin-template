@@ -20,9 +20,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { authClient, useSession } from "@/lib/auth";
+import { authClient } from "@/lib/auth";
 import type { Role } from "@/lib/db/generated/enums";
-import { isCurrentUser } from "@/lib/user-helpers";
 import { cn } from "@/lib/utils";
 import { BanUserDialog } from "./ban-user-dialog";
 import { DeleteUserDialog } from "./delete-user-dialog";
@@ -33,49 +32,40 @@ import { UnbanUserDialog } from "./unban-user-dialog";
 import type { UserTableRow } from "./users-table-types";
 
 interface UsersDataTableRowActionsProps {
+  currentUserId: string;
+  role: Role;
   user: UserTableRow;
 }
 
 export function UsersDataTableRowActions({
+  currentUserId,
+  role,
   user,
 }: UsersDataTableRowActionsProps) {
-  const { data: session } = useSession();
-  const role = session?.user?.role as Role | undefined;
+  const canEdit = authClient.admin.checkRolePermission({
+    role,
+    permissions: { user: ["update", "set-role"] },
+  });
 
-  const canEdit = role
-    ? authClient.admin.checkRolePermission({
-        role,
-        permissions: { user: ["update", "set-role"] },
-      })
-    : false;
+  const canReset = authClient.admin.checkRolePermission({
+    role,
+    permissions: { user: ["set-password"] },
+  });
 
-  const canReset = role
-    ? authClient.admin.checkRolePermission({
-        role,
-        permissions: { user: ["set-password"] },
-      })
-    : false;
+  const canImpersonate = authClient.admin.checkRolePermission({
+    role,
+    permissions: { user: ["impersonate"] },
+  });
 
-  const canImpersonate = role
-    ? authClient.admin.checkRolePermission({
-        role,
-        permissions: { user: ["impersonate"] },
-      })
-    : false;
+  const canBan = authClient.admin.checkRolePermission({
+    role,
+    permissions: { user: ["ban"] },
+  });
 
-  const canBan = role
-    ? authClient.admin.checkRolePermission({
-        role,
-        permissions: { user: ["ban"] },
-      })
-    : false;
-
-  const canDelete = role
-    ? authClient.admin.checkRolePermission({
-        role,
-        permissions: { user: ["delete"] },
-      })
-    : false;
+  const canDelete = authClient.admin.checkRolePermission({
+    role,
+    permissions: { user: ["delete"] },
+  });
 
   const showDropdown =
     canEdit || canReset || canImpersonate || canBan || canDelete;
@@ -87,7 +77,7 @@ export function UsersDataTableRowActions({
   const [showDelete, setShowDelete] = useState(false);
   const [showImpersonate, setShowImpersonate] = useState(false);
   const isBanned = !!user.banned;
-  const isMe = isCurrentUser(session, user.id);
+  const isMe = user.id === currentUserId;
 
   if (!showDropdown) return null;
 

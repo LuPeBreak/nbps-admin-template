@@ -6,7 +6,7 @@ import type { DataTableColumnMeta } from "@/components/data-table/data-table-typ
 import { RoleBadge } from "./role-badge";
 import { StatusBadge } from "./status-badge";
 import { UsersDataTableRowActions } from "./users-data-table-row-actions";
-import type { UserTableRow } from "./users-table-types";
+import type { UsersTableMeta, UserTableRow } from "./users-table-types";
 
 export const usersColumns: ColumnDef<UserTableRow>[] = [
   {
@@ -47,6 +47,16 @@ export const usersColumns: ColumnDef<UserTableRow>[] = [
     id: "actions",
     enableHiding: false,
     size: 50,
-    cell: ({ row }) => <UsersDataTableRowActions user={row.original} />,
+    cell: ({ row, table }) => {
+      const meta = table.options.meta as UsersTableMeta;
+
+      return (
+        <UsersDataTableRowActions
+          currentUserId={meta.currentUserId}
+          role={meta.role}
+          user={row.original}
+        />
+      );
+    },
   },
 ];
