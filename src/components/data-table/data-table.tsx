@@ -4,8 +4,11 @@ import {
   type ColumnDef,
   flexRender,
   getCoreRowModel,
+  type TableMeta,
   useReactTable,
+  type VisibilityState,
 } from "@tanstack/react-table";
+import { useState } from "react";
 
 import {
   Table,
@@ -16,6 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { DataTablePagination } from "./data-table-pagination";
+import { DataTableViewOptions } from "./data-table-view-options";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -24,6 +28,7 @@ interface DataTableProps<TData, TValue> {
   totalCount: number;
   toolbar?: React.ReactNode;
   tableActions?: React.ReactNode;
+  meta?: TableMeta<TData>;
 }
 
 export function DataTable<TData, TValue>({
@@ -33,7 +38,10 @@ export function DataTable<TData, TValue>({
   totalCount,
   toolbar,
   tableActions,
+  meta,
 }: DataTableProps<TData, TValue>) {
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+
   const table = useReactTable({
     data,
     columns,
@@ -41,18 +49,24 @@ export function DataTable<TData, TValue>({
     manualPagination: true,
     manualFiltering: true,
     manualSorting: true,
+    meta,
+    onColumnVisibilityChange: setColumnVisibility,
+    state: { columnVisibility },
     getCoreRowModel: getCoreRowModel(),
   });
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        {toolbar}
-        {tableActions && <div className="ml-auto">{tableActions}</div>}
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        {toolbar && <div className="min-w-0 flex-1">{toolbar}</div>}
+        <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto">
+          {tableActions}
+          <DataTableViewOptions table={table} />
+        </div>
       </div>
 
       <div className="rounded-md border">
-        <Table>
+        <Table className="min-w-max">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
@@ -92,7 +106,7 @@ export function DataTable<TData, TValue>({
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={columns.length}
+                  colSpan={table.getVisibleLeafColumns().length}
                   className="h-24 text-center"
                 >
                   Nenhum resultado encontrado.

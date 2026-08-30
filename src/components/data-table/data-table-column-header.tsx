@@ -11,7 +11,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { orderByParser, orderParser } from "./data-table-base-search-params";
+import {
+  orderByParser,
+  orderParser,
+  pageParser,
+} from "./data-table-base-search-params";
 
 interface DataTableColumnHeaderProps<TData, TValue>
   extends React.HTMLAttributes<HTMLDivElement> {
@@ -22,6 +26,7 @@ interface DataTableColumnHeaderProps<TData, TValue>
 const sortParsers = {
   orderBy: orderByParser,
   order: orderParser,
+  page: pageParser,
 };
 
 export function DataTableColumnHeader<TData, TValue>({
@@ -32,6 +37,7 @@ export function DataTableColumnHeader<TData, TValue>({
   const [isPending, startTransition] = useTransition();
 
   const [{ orderBy, order }, setSort] = useQueryStates(sortParsers, {
+    history: "push",
     shallow: false,
     startTransition,
   });
@@ -44,7 +50,7 @@ export function DataTableColumnHeader<TData, TValue>({
   const sortState = isSorted ? order : false;
 
   const handleSort = (dir: "asc" | "desc") => {
-    setSort({ orderBy: column.id, order: dir });
+    setSort({ orderBy: column.id, order: dir, page: 1 });
   };
 
   return (
@@ -52,9 +58,10 @@ export function DataTableColumnHeader<TData, TValue>({
       <DropdownMenu>
         <DropdownMenuTrigger
           className={cn(
-            "-ml-3 flex h-8 items-center gap-1 rounded-md px-3 text-sm hover:bg-accent data-[popup-open]:bg-accent",
+            "-ml-3 flex h-8 items-center gap-1 rounded-md px-3 text-sm transition-opacity hover:bg-accent data-[popup-open]:bg-accent",
             isPending && "opacity-50",
           )}
+          aria-busy={isPending}
         >
           <span>{title}</span>
           {sortState === "desc" ? (

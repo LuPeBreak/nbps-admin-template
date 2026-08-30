@@ -10,6 +10,7 @@ Server Actions own application runtime data mutations and queries.
 - **Use Action Helpers**: Never manually format Zod parse errors or write custom try-catch returning DB errors. Use `validateInput` + `actionError`.
 - **Don't Duplicate Better Auth**: Never custom Server Actions duplicating Better Auth native client methods (profile updates, password resets, user management). Call Better Auth methods directly.
 - **Return Type**: Every action returns `Promise<ActionResponse<T>>`.
+- **Effective Pagination State**: A paginated list action that recovers an out-of-range request returns the effective page alongside its rows and counts. The route caller is responsible for canonicalizing a mismatched URL before rendering.
 
 ---
 

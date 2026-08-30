@@ -190,6 +190,25 @@ describe("ListUsersSchema", () => {
     expect(ListUsersSchema.safeParse({ pageSize: 101 }).success).toBe(false);
   });
 
+  it("deve limitar page e exigir paginação inteira", () => {
+    expect(ListUsersSchema.safeParse({ page: 100000 }).success).toBe(true);
+    expect(ListUsersSchema.safeParse({ page: 100001 }).success).toBe(false);
+    expect(ListUsersSchema.safeParse({ page: "1.5" }).success).toBe(false);
+    expect(ListUsersSchema.safeParse({ pageSize: "2.5" }).success).toBe(false);
+  });
+
+  it("deve normalizar e limitar a busca", () => {
+    const result = ListUsersSchema.safeParse({ search: "  ana  " });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.search).toBe("ana");
+    }
+
+    expect(ListUsersSchema.safeParse({ search: "a".repeat(101) }).success).toBe(
+      false,
+    );
+  });
+
   it("deve rejeitar valores inválidos em orderBy, order e role", () => {
     expect(ListUsersSchema.safeParse({ role: "superadmin" }).success).toBe(
       false,

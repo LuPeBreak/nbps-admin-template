@@ -1,4 +1,9 @@
 import { z } from "zod";
+import {
+  DATA_TABLE_MAX_PAGE,
+  DATA_TABLE_MAX_PAGE_SIZE,
+  DATA_TABLE_MAX_SEARCH_LENGTH,
+} from "@/components/data-table/data-table-constants";
 import { capitalizeName } from "@/lib/utils/capitalize-name";
 
 export const SignInSchema = z.object({
@@ -92,7 +97,14 @@ export const DeleteUserSchema = z.object({
 export type DeleteUserInput = z.infer<typeof DeleteUserSchema>;
 
 export const ListUsersSchema = z.object({
-  search: z.string().optional(),
+  search: z
+    .string()
+    .trim()
+    .max(
+      DATA_TABLE_MAX_SEARCH_LENGTH,
+      `A busca deve ter no máximo ${DATA_TABLE_MAX_SEARCH_LENGTH} caracteres.`,
+    )
+    .optional(),
   role: z.preprocess(
     (val) => (val === "" ? undefined : val),
     z.enum(["admin", "user"]).optional(),
@@ -102,8 +114,23 @@ export const ListUsersSchema = z.object({
     z.enum(["name", "email", "role", "createdAt"]).optional(),
   ),
   order: z.enum(["asc", "desc"]).optional(),
-  page: z.coerce.number().int().positive().optional().default(1),
-  pageSize: z.coerce.number().int().min(1).max(100).optional().default(15),
+  page: z.coerce
+    .number()
+    .int("A página deve ser um número inteiro.")
+    .positive("A página deve ser maior que zero.")
+    .max(DATA_TABLE_MAX_PAGE, "A página excede o limite permitido.")
+    .optional()
+    .default(1),
+  pageSize: z.coerce
+    .number()
+    .int("O tamanho da página deve ser um número inteiro.")
+    .min(1, "O tamanho da página deve ser maior que zero.")
+    .max(
+      DATA_TABLE_MAX_PAGE_SIZE,
+      "O tamanho da página excede o limite permitido.",
+    )
+    .optional()
+    .default(15),
 });
 
 export type ListUsersInput = z.infer<typeof ListUsersSchema>;

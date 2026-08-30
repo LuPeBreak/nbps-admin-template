@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { pageParser, pageSizeParser } from "./data-table-base-search-params";
+import { getPaginationRange } from "./data-table-pagination-utils";
 
 interface DataTablePaginationProps {
   totalCount: number;
@@ -35,34 +36,40 @@ export function DataTablePagination({
       pageSize: pageSizeParser,
     },
     {
+      history: "push",
       startTransition,
       shallow: false,
     },
   );
 
-  const safePageCount = Math.max(pageCount, 1);
-  const currentPage = Math.min(page, safePageCount);
-  const startItem = (currentPage - 1) * pageSize + 1;
-  const endItem = Math.min(currentPage * pageSize, totalCount);
+  const { currentPage, endItem, safePageCount, startItem } = getPaginationRange(
+    { page, pageCount, pageSize, totalCount },
+  );
 
   return (
     <div
-      className="flex items-center justify-between px-2"
+      className="flex flex-col gap-3 px-2 transition-opacity data-[pending]:opacity-60 sm:flex-row sm:items-center sm:justify-between"
       data-pending={isPending ? "" : undefined}
+      aria-busy={isPending}
     >
-      <div className="flex-1 text-sm text-muted-foreground">
+      <div className="text-sm text-muted-foreground">
         Mostrando {startItem}-{endItem} de {totalCount} registro(s).
       </div>
-      <div className="flex items-center space-x-6 lg:space-x-8">
+      <div className="flex flex-wrap items-center justify-end gap-3 sm:gap-6 lg:gap-8">
         <div className="flex items-center space-x-2">
-          <p className="text-sm font-medium">Linhas por página</p>
+          <p className="hidden text-sm font-medium sm:block">
+            Linhas por página
+          </p>
           <Select
             value={`${pageSize}`}
             onValueChange={(value) => {
               setPagination({ page: 1, pageSize: Number(value) });
             }}
           >
-            <SelectTrigger className="h-8 w-[70px]">
+            <SelectTrigger
+              aria-label="Linhas por página"
+              className="h-8 w-[70px]"
+            >
               <SelectValue placeholder={pageSize} />
             </SelectTrigger>
             <SelectContent side="top">
@@ -74,7 +81,7 @@ export function DataTablePagination({
             </SelectContent>
           </Select>
         </div>
-        <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+        <div className="flex min-w-[100px] items-center justify-center text-sm font-medium">
           Página {currentPage} de {safePageCount}
         </div>
         <div className="flex items-center space-x-2">

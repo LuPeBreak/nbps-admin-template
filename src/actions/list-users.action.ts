@@ -1,9 +1,10 @@
 "use server";
 
+import { getEffectivePage } from "@/components/data-table/data-table-pagination-utils";
+import type { UserTableRow } from "@/components/users/users-table-types";
 import { actionError, validateInput } from "@/lib/actions/action-helpers";
 import { protectedAction } from "@/lib/auth/protected-action";
 import { prisma } from "@/lib/db";
-import type { Role } from "@/lib/db/generated/enums";
 import type { ActionResponse } from "@/lib/errors";
 import { ListUsersSchema } from "@/validations/user.schema";
 
@@ -17,16 +18,10 @@ function isValidSortField(field: string): field is UserSortField {
 }
 
 export interface ListUsersResult {
-  users: {
-    id: string;
-    name: string;
-    email: string;
-    role: Role;
-    banned: boolean | null;
-    createdAt: Date;
-  }[];
+  users: UserTableRow[];
   total: number;
   pageCount: number;
+  page: number;
 }
 
 export const listUsersAction = protectedAction(
@@ -64,11 +59,11 @@ export const listUsersAction = protectedAction(
     }
 
     try {
-      const [users, total] = await Promise.all([
+      const findUsers = (requestedPage: number) =>
         prisma.user.findMany({
           where,
           orderBy: { [sortField]: order },
-          skip: (page - 1) * pageSize,
+          skip: (requestedPage - 1) * pageSize,
           take: pageSize,
           select: {
             id: true,
@@ -78,16 +73,27 @@ export const listUsersAction = protectedAction(
             banned: true,
             createdAt: true,
           },
-        }),
+        });
+
+      const [initialUsers, total] = await Promise.all([
+        findUsers(page),
         prisma.user.count({ where }),
       ]);
+      const pageCount = Math.ceil(total / pageSize);
+      const effectivePage = getEffectivePage(page, pageCount);
+      let users = initialUsers;
+
+      if (effectivePage !== page) {
+        users = await findUsers(effectivePage);
+      }
 
       return {
         success: true as const,
         data: {
           users,
           total,
-          pageCount: Math.ceil(total / pageSize),
+          pageCount,
+          page: effectivePage,
         },
       };
     } catch (error) {

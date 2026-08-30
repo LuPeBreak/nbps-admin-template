@@ -1,0 +1,3 @@
+export const DATA_TABLE_MAX_PAGE = 100000;
+export const DATA_TABLE_MAX_PAGE_SIZE = 100;
+export const DATA_TABLE_MAX_SEARCH_LENGTH = 100;
