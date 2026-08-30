@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  ac,
   admin,
   hasPermission,
   type PermissionOption,
@@ -50,6 +51,20 @@ describe("hasPermission authorization contract", () => {
 
     expect(hasPermission("admin", USER_LIST_PERMISSION)).toBe(true);
     expect(hasPermission("user", USER_LIST_PERMISSION)).toBe(false);
+
+    const menuOnlyRole = ac.newRole({
+      ...user.statements,
+      menu: ["users"],
+    });
+    const listOnlyRole = ac.newRole({
+      ...user.statements,
+      user: ["list"],
+    });
+
+    expect(menuOnlyRole.authorize({ menu: ["users"] }).success).toBe(true);
+    expect(menuOnlyRole.authorize({ user: ["list"] }).success).toBe(false);
+    expect(listOnlyRole.authorize({ user: ["list"] }).success).toBe(true);
+    expect(listOnlyRole.authorize({ menu: ["users"] }).success).toBe(false);
   });
 
   it("requires every permission by default and when requireAll is true", () => {

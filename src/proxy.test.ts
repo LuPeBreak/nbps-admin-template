@@ -1,4 +1,7 @@
-import { getRedirectUrl } from "next/experimental/testing/server";
+import {
+  getRedirectUrl,
+  unstable_doesMiddlewareMatch,
+} from "next/experimental/testing/server";
 import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -12,7 +15,7 @@ vi.mock("@/lib/auth/auth", () => ({
   },
 }));
 
-import { proxy } from "./proxy";
+import { config, proxy } from "./proxy";
 
 function createRequest(pathname: string, cookie?: string) {
   return new NextRequest(`https://example.test${pathname}`, {
@@ -25,6 +28,17 @@ beforeEach(() => {
 });
 
 describe("proxy authentication contract", () => {
+  it.each([
+    ["/dashboard", true],
+    ["/dashboard/admin/users", true],
+    ["/api/auth/get-session", false],
+    ["/_next/static/chunks/app.js", false],
+  ])("matches %s: %s", (url, expected) => {
+    expect(unstable_doesMiddlewareMatch({ config, nextConfig: {}, url })).toBe(
+      expected,
+    );
+  });
+
   it.each(["/dashboard", "/dashboard/admin/users"])(
     "redirects an anonymous private request for %s to sign-in",
     async (pathname) => {
