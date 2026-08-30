@@ -76,6 +76,16 @@ describe("hasPermission authorization contract", () => {
     expect(hasPermission("admin", MIXED_ADMIN_PERMISSIONS, false)).toBe(true);
   });
 
+  it("denies when no permission matches and requireAll is false", () => {
+    expect(
+      hasPermission(
+        "user",
+        [...USER_LIST_PERMISSION, ...MENU_USERS_PERMISSION],
+        false,
+      ),
+    ).toBe(false);
+  });
+
   it("denies an unknown role", () => {
     const unknownRole = "auditor" as unknown as RoleName;
 

@@ -133,6 +133,30 @@ describe("protectedAction authorization contract", () => {
     expect(callback).toHaveBeenCalledWith(session, "input");
   });
 
+  it("requires every permission by default and never calls a denied callback", async () => {
+    mocks.getSession.mockResolvedValue(createSession("admin"));
+    const callback = vi.fn(async () => ({
+      success: true as const,
+      data: "unexpected",
+    }));
+    const action = protectedAction(
+      [
+        { resource: "user", action: ["list"] },
+        { resource: "user", action: ["impersonate-admins"] },
+      ],
+      callback,
+    );
+
+    await expect(action()).resolves.toEqual({
+      success: false,
+      error: {
+        message: "Você não tem permissão para executar esta ação.",
+        code: "FORBIDDEN",
+      },
+    });
+    expect(callback).not.toHaveBeenCalled();
+  });
+
   it("honors the intentional requireAll false option", async () => {
     const session = createSession("admin");
     mocks.getSession.mockResolvedValue(session);

@@ -71,14 +71,17 @@ describe("proxy authentication contract", () => {
     expect(getRedirectUrl(response)).toBe("https://example.test/dashboard");
   });
 
-  it("allows an anonymous auth-route request", async () => {
-    mocks.getSession.mockResolvedValue(null);
+  it.each(["/sign-in", "/forgot-password", "/reset-password"])(
+    "allows an anonymous auth-route request for %s",
+    async (pathname) => {
+      mocks.getSession.mockResolvedValue(null);
 
-    const response = await proxy(createRequest("/sign-in"));
+      const response = await proxy(createRequest(pathname));
 
-    expect(getRedirectUrl(response)).toBeNull();
-    expect(response.status).toBe(200);
-  });
+      expect(getRedirectUrl(response)).toBeNull();
+      expect(response.status).toBe(200);
+    },
+  );
 
   it("allows a public request without querying the session", async () => {
     const response = await proxy(createRequest("/"));
