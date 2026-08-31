@@ -194,9 +194,13 @@ describe("requireSession authorization contract", () => {
 
   it("allows a valid session when no permission is required", async () => {
     const session = createSession("user");
+    const requestHeaders = new Headers({ cookie: "session=request-token" });
+    mocks.headers.mockResolvedValue(requestHeaders);
     mocks.getSession.mockResolvedValue(session);
 
     await expect(requireSession()).resolves.toBe(session);
+    expect(mocks.headers).toHaveBeenCalledOnce();
+    expect(mocks.getSession).toHaveBeenCalledWith({ headers: requestHeaders });
     expect(mocks.redirect).not.toHaveBeenCalled();
   });
 

@@ -77,6 +77,15 @@ describe("proxy authentication contract", () => {
     expect(headers.get("cookie")).toBe("session=stale-token");
   });
 
+  it("fails closed when the private session lookup rejects", async () => {
+    mocks.getSession.mockRejectedValue(new Error("authentication unavailable"));
+
+    const response = await proxy(createRequest("/dashboard", "session=token"));
+
+    expect(getRedirectUrl(response)).toBe("https://example.test/sign-in");
+    expect(mocks.getSession).toHaveBeenCalledOnce();
+  });
+
   it("redirects an authenticated auth-route request to the dashboard", async () => {
     mocks.getSession.mockResolvedValue({ user: { id: "user-1" } });
 

@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   adminClient: vi.fn((options: unknown) => ({ options })),
   betterAuth: vi.fn((options: unknown) => ({ options })),
-  createAuthClient: vi.fn(() => ({
+  createAuthClient: vi.fn((_options: unknown) => ({
     signIn: vi.fn(),
     signOut: vi.fn(),
     signUp: vi.fn(),
@@ -46,6 +46,10 @@ interface RoleWiring {
   };
 }
 
+interface PluginConfiguration {
+  plugins?: unknown[];
+}
+
 function expectSharedRoleWiring(options: RoleWiring | undefined) {
   expect(options?.ac).toBe(ac);
   expect(options?.roles?.admin).toBe(adminRole);
@@ -58,8 +62,13 @@ describe("Better Auth role wiring contract", () => {
     const options = mocks.serverAdmin.mock.calls[0]?.[0] as
       | RoleWiring
       | undefined;
+    const configuration = mocks.betterAuth.mock.calls[0]?.[0] as
+      | PluginConfiguration
+      | undefined;
+    const plugin = mocks.serverAdmin.mock.results[0]?.value;
 
     expectSharedRoleWiring(options);
+    expect(configuration?.plugins).toContain(plugin);
   });
 
   it("passes the shared access control and roles to the client admin plugin", () => {
@@ -67,7 +76,12 @@ describe("Better Auth role wiring contract", () => {
     const options = mocks.adminClient.mock.calls[0]?.[0] as
       | RoleWiring
       | undefined;
+    const configuration = mocks.createAuthClient.mock.calls[0]?.[0] as
+      | PluginConfiguration
+      | undefined;
+    const plugin = mocks.adminClient.mock.results[0]?.value;
 
     expectSharedRoleWiring(options);
+    expect(configuration?.plugins).toContain(plugin);
   });
 });
