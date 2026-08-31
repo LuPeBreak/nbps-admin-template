@@ -33,6 +33,8 @@ describe("proxy authentication contract", () => {
     ["/dashboard/admin/users", true],
     ["/api/auth/get-session", false],
     ["/_next/static/chunks/app.js", false],
+    ["/favicon.ico", false],
+    ["/static/assets/app.js", false],
   ])("matches %s: %s", (url, expected) => {
     expect(unstable_doesMiddlewareMatch({ config, nextConfig: {}, url })).toBe(
       expected,
@@ -63,6 +65,18 @@ describe("proxy authentication contract", () => {
     expect(headers.get("cookie")).toBe("session=token");
   });
 
+  it("denies a private request when its session cookie is stale", async () => {
+    mocks.getSession.mockResolvedValue(null);
+
+    const response = await proxy(
+      createRequest("/dashboard", "session=stale-token"),
+    );
+
+    expect(getRedirectUrl(response)).toBe("https://example.test/sign-in");
+    const [{ headers }] = mocks.getSession.mock.calls[0] ?? [];
+    expect(headers.get("cookie")).toBe("session=stale-token");
+  });
+
   it("redirects an authenticated auth-route request to the dashboard", async () => {
     mocks.getSession.mockResolvedValue({ user: { id: "user-1" } });
 
@@ -83,11 +97,14 @@ describe("proxy authentication contract", () => {
     },
   );
 
-  it("allows a public request without querying the session", async () => {
-    const response = await proxy(createRequest("/"));
+  it.each(["/", "/verify-email-success"])(
+    "allows the public request for %s without querying the session",
+    async (pathname) => {
+      const response = await proxy(createRequest(pathname));
 
-    expect(getRedirectUrl(response)).toBeNull();
-    expect(response.status).toBe(200);
-    expect(mocks.getSession).not.toHaveBeenCalled();
-  });
+      expect(getRedirectUrl(response)).toBeNull();
+      expect(response.status).toBe(200);
+      expect(mocks.getSession).not.toHaveBeenCalled();
+    },
+  );
 });
