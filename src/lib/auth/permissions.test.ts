@@ -72,6 +72,13 @@ describe("hasPermission authorization contract", () => {
     expect(hasPermission("admin", MIXED_ADMIN_PERMISSIONS, true)).toBe(false);
   });
 
+  it("allows all granted permissions by default and when requireAll is true", () => {
+    const permissions = [...USER_LIST_PERMISSION, ...MENU_USERS_PERMISSION];
+
+    expect(hasPermission("admin", permissions)).toBe(true);
+    expect(hasPermission("admin", permissions, true)).toBe(true);
+  });
+
   it("allows any matching permission when requireAll is false", () => {
     expect(hasPermission("admin", MIXED_ADMIN_PERMISSIONS, false)).toBe(true);
   });

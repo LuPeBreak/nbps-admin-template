@@ -68,6 +68,10 @@ describe("Better Auth role wiring contract", () => {
     const plugin = mocks.serverAdmin.mock.results[0]?.value;
 
     expectSharedRoleWiring(options);
+    expect(options).toMatchObject({
+      defaultRole: "user",
+      adminRoles: ["admin"],
+    });
     expect(configuration?.plugins).toContain(plugin);
   });
 
