@@ -9,7 +9,7 @@ Next.js App Router (pages, layouts, API routes, error boundaries). Keep route-sp
 - **Thin Route Composition**: Pages and layouts may contain route-specific Server Component orchestration, including permission checks, search-param parsing, action calls, Suspense boundaries, and composition of domain components. Reusable UI, forms, dialogs, client state, and complex presentation logic belong in `src/components/`.
 - **Default Page Exports**: Export Pages and Layouts as `default` from named functions with a `Page`/`Layout` suffix (e.g., `export default function DashboardPage()`).
 - **Server Components by Default**: All layouts + pages = Server Components. Extract interactive parts (forms, dialogs, button lists) as Client Components (`"use client"`) inside `src/components/`.
-- **Use requireSession**: Protect pages + layouts via `requireSession(permissions?)` at top of component.
+- **Use requireSession**: Protect pages + layouts via `requireSession(requirement?)` at top of component.
 - **Async Params**: In Next.js 16, `params` and `searchParams` are `Promise` types — always `await` them before use (e.g., `const resolvedParams = await params`).
 - **Canonical Derived URL State**: When server-side data loading derives a canonical value from raw search params (for example, the last valid page), redirect only when the value differs and use replacement history so the correction cannot loop or create a synthetic history entry.
 
@@ -37,7 +37,7 @@ Only Next.js-recognized files live here:
 Route security = double-layer protection:
 
 1. **Proxy Layer (`src/proxy.ts`)**: Validates the active session (mechanism documented in `src/lib/auth/AGENTS.md`). Unauth → redirect to `/sign-in` from private routes. Logged-in → redirect to `/dashboard` from auth routes.
-2. **Page Layer (`page.tsx` / `layout.tsx`)**: Calls `requireSession` helper. Fetches user data, optionally redirects users lacking permissions → `/dashboard`.
+2. **Page Layer (`page.tsx` / `layout.tsx`)**: Calls `requireSession`, returning a session with a validated single Prisma role under the current NBPS baseline (role-model evolution is governed by `src/lib/auth/AGENTS.md`). Missing session → `/sign-in`; invalid role → public `/` (no automatic return to dashboard); valid role lacking capabilities → `/dashboard`. An omitted requirement means authentication only; `{}` denies access. Use the shared AND request or explicit `anyOf` without nested composition. Page capabilities do not replace contextual authorization of individual target objects.
 
 ---
 
@@ -52,7 +52,7 @@ import { UserReport } from "@/components/reports/user-report";
 
 export default async function ReportsPage() {
   // Protects the route and enforces permissions
-  const session = await requireSession([{ resource: "menu", action: ["users"] }]);
+  const session = await requireSession({ user: ["list"] });
 
   return (
     <div className="space-y-6">

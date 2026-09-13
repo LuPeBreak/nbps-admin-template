@@ -6,91 +6,89 @@ import {
 } from "better-auth/plugins/admin/access";
 import type { Role } from "@/lib/db/generated/enums";
 
-const statement = {
-  ...defaultStatements,
-  menu: ["users"],
-} as const;
+const statement = { ...defaultStatements } as const;
 
 export const ac = createAccessControl(statement);
+export const user = ac.newRole({ ...userAc.statements });
+export const admin = ac.newRole({ ...adminAc.statements });
 
-export const user = ac.newRole({
-  ...userAc.statements,
-  menu: [],
-});
+/** Shared by the server and client Admin plugins; exhaustive over Prisma roles. */
+export const roles = { admin, user } satisfies Record<
+  Role,
+  ReturnType<typeof ac.newRole>
+>;
 
-export const admin = ac.newRole({
-  ...adminAc.statements,
-  menu: ["users"],
-});
+export function isRole(value: unknown): value is Role {
+  return typeof value === "string" && Object.hasOwn(roles, value);
+}
 
-/**
- * Mapa de role → statements (permissões) daquele cargo.
- *
- * Para adicionar um cargo novo (ex: "editor", "suporte"):
- * 1. Crie o role: `export const editor = ac.newRole({ ...userAc.statements, menu: ["users"] })`
- * 2. Adicione no map: `rolePermissions.editor = editor.statements`
- */
-export const rolePermissions = {
-  admin: admin.statements,
-  user: user.statements,
-} as const satisfies Record<Role, unknown>;
+type Resource = keyof typeof statement;
 
-export type RoleName = Role;
+/** Native simple request: AND across resources and their nonempty action lists. */
+export type PermissionRequest = {
+  [R in Resource]?: [
+    (typeof statement)[R][number],
+    ...(typeof statement)[R][number][],
+  ];
+};
 
-/**
- * Tipagens derivadas do `statement` para type-safety em checagens.
- *
- * `Resource` = union dos resources disponíveis (ex: "user" | "session" | "menu").
- * `PermissionOption` = shape aceito por `protectedAction()` e `checkRolePermission()`.
- */
-export type Resource = keyof typeof statement;
+/** NBPS composition: OR between complete AND requests, without nesting. */
+export type PermissionRequirement =
+  | (PermissionRequest & { anyOf?: never })
+  | ({ anyOf: PermissionRequest[] } & { [R in Resource]?: never });
 
-export type PermissionOption = {
-  [R in Resource]: {
-    resource: R;
-    action?: (typeof statement)[R][number][];
-  };
-}[Resource];
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return (
+    value !== null &&
+    typeof value === "object" &&
+    (Object.getPrototypeOf(value) === Object.prototype ||
+      Object.getPrototypeOf(value) === null)
+  );
+}
 
-/**
- * Checagem de permissão **síncrona e em memória** (zero HTTP, zero DB lookup).
- *
- * Espelha a semântica do `auth.api.userHasPermission` (ver
- * `node_modules/better-auth/dist/plugins/admin/has-permission.mjs`):
- * pega o `role` do usuário, consulta `rolePermissions[role]` (statements
- * estáticos do Access Control) e confere se as permissões passadas estão
- * cobertas pelo role.
- *
- * `requireAll`:
- * - `true` (default): usuário precisa ter TODAS as permissões especificadas
- * - `false`: usuário precisa ter PELO MENOS UMA
- *
- * Trade-off: este helper é **role-only** — não honra overrides per-user
- * (`adminUserIds` do Better Auth). No projeto atual, permissões são 100%
- * derivadas do role, então é semanticamente equivalente. Se um dia for
- * preciso per-user overrides, voltar para `auth.api.userHasPermission`.
- *
- * Única fonte de verdade consumida pelo `protectedAction` (server actions)
- * e pela sidebar (`hasMenuPermission` é um thin wrapper deste helper).
- */
+function isPermissionRequest(value: unknown): value is PermissionRequest {
+  if (!isPlainObject(value)) return false;
+  const keys = Reflect.ownKeys(value);
+  return (
+    keys.length > 0 &&
+    keys.every((resource) => {
+      if (
+        typeof resource !== "string" ||
+        !Object.hasOwn(statement, resource) ||
+        !Object.prototype.propertyIsEnumerable.call(value, resource)
+      ) {
+        return false;
+      }
+      const actions = value[resource];
+      return (
+        Array.isArray(actions) &&
+        actions.length > 0 &&
+        Array.from(actions).every((action) => typeof action === "string")
+      );
+    })
+  );
+}
+
+/** Capability gate only. Contextual rules such as ownership belong to the server domain. */
 export function hasPermission(
-  roleName: Role,
-  permissions: PermissionOption[],
-  requireAll = true,
+  roleName: unknown,
+  requirement: PermissionRequirement,
 ): boolean {
-  const statements = rolePermissions[roleName];
-  if (!statements) return false;
+  if (!isRole(roleName) || !isPlainObject(requirement)) return false;
+  const role = roles[roleName];
 
-  const results = permissions.map((opt) => {
-    const allowed = statements[opt.resource];
-    if (!Array.isArray(allowed)) return false;
-    const required = opt.action && opt.action.length > 0 ? opt.action : [];
-    if (required.length === 0) {
-      // Sem actions especificadas: basta ter o resource no role.
-      return true;
-    }
-    return required.every((a) => allowed.includes(a as never));
-  });
+  if (Object.hasOwn(requirement, "anyOf")) {
+    const alternatives = requirement.anyOf;
+    return (
+      Reflect.ownKeys(requirement).length === 1 &&
+      Array.isArray(alternatives) &&
+      alternatives.length > 0 &&
+      Array.from(alternatives).every(isPermissionRequest) &&
+      alternatives.some((request) => role.authorize(request).success)
+    );
+  }
 
-  return requireAll ? results.every(Boolean) : results.some(Boolean);
+  return (
+    isPermissionRequest(requirement) && role.authorize(requirement).success
+  );
 }
