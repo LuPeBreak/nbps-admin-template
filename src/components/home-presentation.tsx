@@ -122,7 +122,7 @@ export function HomePresentation() {
       <main id="conteudo" tabIndex={-1}>
         <section
           aria-labelledby="home-title"
-          className="mx-auto grid max-w-7xl gap-12 px-5 pt-16 pb-12 sm:px-8 sm:pt-24 lg:grid-cols-[1.3fr_1fr] lg:items-center lg:gap-16 lg:px-12 lg:pt-28 lg:pb-20"
+          className={`${styles.hero} mx-auto grid max-w-7xl gap-12 px-5 sm:px-8 lg:grid-cols-[1.3fr_1fr] lg:items-center lg:gap-16 lg:px-12`}
         >
           <div>
             <p className="mb-7 flex items-center gap-3 text-sm font-medium leading-6 sm:text-base">
@@ -150,21 +150,22 @@ export function HomePresentation() {
                 href={useTemplate}
                 className={buttonVariants({
                   size: "lg",
-                  className: "min-h-12 gap-2 px-5",
+                  className: `${styles.pressable} min-h-12 gap-2 px-5`,
                 })}
               >
                 <GitPullRequest aria-hidden="true" /> Usar o template{" "}
-                <ArrowUpRight aria-hidden="true" />
+                <ArrowUpRight className={styles.ctaArrow} aria-hidden="true" />
               </a>
               <a
                 href={repository}
                 className={buttonVariants({
                   variant: "outline",
                   size: "lg",
-                  className: "min-h-12 px-5",
+                  className: `${styles.pressable} min-h-12 px-5`,
                 })}
               >
-                Ver no GitHub <ArrowUpRight aria-hidden="true" />
+                Ver no GitHub{" "}
+                <ArrowUpRight className={styles.ctaArrow} aria-hidden="true" />
               </a>
             </div>
             <p className="mt-4 text-xs text-muted-foreground">
@@ -173,7 +174,7 @@ export function HomePresentation() {
           </div>
           <aside
             aria-labelledby="structure-title"
-            className="min-w-0 rounded-2xl border bg-muted/40"
+            className={`${styles.repositoryPanel} min-w-0 rounded-2xl border bg-muted/40`}
           >
             <div className="flex items-center justify-between gap-3 border-b px-5 py-4 sm:px-6">
               <span className="flex items-center gap-2 text-xs font-medium">
@@ -196,16 +197,16 @@ export function HomePresentation() {
               </h2>
               <ul className="mt-6 space-y-1">
                 {modules.map((module) => (
-                  <li key={module.path}>
+                  <li className={styles.repositoryRow} key={module.path}>
                     <a
                       href={`${repository}/tree/main/${module.path}`}
-                      className="group flex flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-md px-2 py-3 transition-colors hover:bg-muted"
+                      className={`${styles.repositoryLink} group flex flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-md px-2 py-3 hover:bg-muted focus-visible:bg-muted`}
                     >
                       <code className="text-xs sm:text-sm">{module.path}</code>
                       <span className="flex items-center gap-2 text-xs text-muted-foreground">
                         {module.label}
                         <ArrowUpRight
-                          className="size-3 opacity-60 group-hover:opacity-100"
+                          className={`${styles.repositoryArrow} size-3 opacity-60 group-hover:opacity-100`}
                           aria-hidden="true"
                         />
                       </span>
@@ -215,7 +216,7 @@ export function HomePresentation() {
               </ul>
               <a
                 href={`${repository}/blob/main/AGENTS.md`}
-                className="mt-5 flex items-center justify-between gap-3 rounded-lg border bg-background px-4 py-4 text-sm"
+                className={`${styles.agentsLink} mt-5 flex items-center justify-between gap-3 rounded-lg border bg-background px-4 py-4 text-sm focus-visible:bg-muted`}
               >
                 <span>
                   <span className="block font-mono font-medium">AGENTS.md</span>
@@ -250,7 +251,7 @@ export function HomePresentation() {
         <section
           id="recursos"
           aria-labelledby="features-title"
-          className="mx-auto flex max-w-7xl flex-col justify-center px-5 py-16 sm:px-8 sm:py-24 md:min-h-svh lg:px-12"
+          className="mx-auto flex max-w-7xl flex-col justify-center px-5 py-16 sm:px-8 sm:py-24 lg:px-12"
         >
           <div className="grid gap-5 md:grid-cols-2 md:gap-12">
             <div>
