@@ -34,7 +34,7 @@ vi.mock("@/lib/email", () => ({
   sendEmail: mocks.sendEmail,
 }));
 
-import { ac, admin as adminRole, user as userRole } from "./permissions";
+import { ac, admin as adminRole, roles, user as userRole } from "./permissions";
 import "./auth";
 import "./auth-client";
 
@@ -52,6 +52,7 @@ interface PluginConfiguration {
 
 function expectSharedRoleWiring(options: RoleWiring | undefined) {
   expect(options?.ac).toBe(ac);
+  expect(options?.roles).toBe(roles);
   expect(options?.roles?.admin).toBe(adminRole);
   expect(options?.roles?.user).toBe(userRole);
 }

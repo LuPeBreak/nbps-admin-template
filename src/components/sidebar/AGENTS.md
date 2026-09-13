@@ -1,47 +1,31 @@
 # Sidebar Module (src/components/sidebar/)
 
-Main dashboard navigation. Filters links server-side in-memory. Zero extra DB or HTTP queries.
+Main dashboard navigation. Filters links in the Server Component using the validated session role, with no additional DB or HTTP queries per link.
 
----
+## Rules
 
-## 💎 Golden Rules
+- **Destination Capabilities**: Each link may declare a shared `PermissionRequirement`: a simple AND request or `anyOf` across complete AND alternatives. `DashboardSidebar` evaluates it with `hasPermission` and the shared role objects.
+- **Optional Requirement**: Links without a requirement remain visible to all authenticated users. A declared empty or malformed requirement is denied.
+- **User Management**: The users destination requires `{ user: ["list"] }`, matching its page and query action. There is no separate menu permission catalog or universal `list` requirement for links.
+- **Server Authority**: Navigation filtering is UX. Destination pages and server operations must enforce their own authorization, including contextual domain rules where needed.
+- **Stable Inputs**: Receive the validated role from the protected layout; keep filtering server-side and delegate interactive rendering to the existing Client Components.
+- **Responsive Navigation**: Toggle collapse state via the client-side provider context.
 
-- **Server-Side Filtering**: Filter nav links server-side via fast in-memory `hasMenuPermission` helper.
-- **Role-Only Lookup**: In-memory permission check = role-only. User-level overrides → revert to `auth.api.userHasPermission`.
-- **Responsive Navigation**: Toggle collapse state via client-side provider context.
+## Files
 
----
+- `dashboard-sidebar.tsx` (server) — Filters links and renders the sidebar shell.
+- `sidebar-config.ts` (shared) — Link configuration and optional capability requirements.
+- `sidebar-provider.tsx` (client) — Collapse state context.
+- `sidebar-link.tsx` (client) — Active link rendering and collapsed tooltip.
+- `sidebar-toggle.tsx` (client) — Collapse button and resize handling.
+- `nav-user.tsx` (client) — Profile settings and sign-out dropdown.
 
-## 📂 Files
+## Adding a Link
 
-- `dashboard-sidebar.tsx` (server) — Sidebar shell. Maps links + renders sections.
-- `sidebar-config.ts` (shared) — Configures links, types, `hasMenuPermission` wrapper.
-- `sidebar-provider.tsx` (client) — Context API provider managing collapsed state.
-- `sidebar-link.tsx` (client) — Active link rendering + tooltip when collapsed.
-- `sidebar-toggle.tsx` (client) — Toggle collapse button + resize handling.
-- `nav-user.tsx` (client) — User profile settings + sign-out dropdown.
-
----
-
-## 🛠️ Implementation Patterns
-
-### 1. Permission Flow (Server-Side, In-Memory)
-Permissions mapping in `src/lib/auth/permissions.ts`. Thin wrapper in `sidebar-config.ts` validates menu key:
+Register the route, Portuguese label and icon in `sidebarLinks`. If the destination requires a capability, reference that catalog-derived requirement directly, for example:
 
 ```typescript
-import type { Role } from "@/lib/db/generated/enums";
-import { hasPermission } from "@/lib/auth/permissions";
-
-export function hasMenuPermission(roleName: Role, key: MenuKey): boolean {
-  return hasPermission(roleName, [{ resource: "menu", action: [key] }]);
-}
+{ href: "/dashboard/admin/users", label: "Usuários", icon: Users, permission: { user: ["list"] } }
 ```
 
-### 2. Adding a New Link
-1. **Define statement** in `src/lib/auth/permissions.ts` (e.g. add `orders` under `menu: [...]`).
-2. **Define type** in `sidebar-config.ts` under `MenuKey` union.
-3. **Register link** in `sidebarLinks` config:
-   ```typescript
-   { href: "/dashboard/admin/orders", label: "Pedidos", icon: Package, permission: "orders" }
-   ```
-   *Note: Links without permission visible to all authenticated users.*
+Keep the destination page's gate aligned. Do not add a separate navigation permission or a database lookup per link.

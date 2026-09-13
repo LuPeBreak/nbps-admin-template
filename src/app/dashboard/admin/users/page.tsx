@@ -37,10 +37,8 @@ interface PageProps {
 }
 
 export default async function AdminUsersPage({ searchParams }: PageProps) {
-  const session = await requireSession([
-    { resource: "user", action: ["list"] },
-  ]);
-  const role = session.user.role as Role;
+  const session = await requireSession({ user: ["list"] });
+  const role = session.user.role;
 
   return (
     <NuqsAdapter>

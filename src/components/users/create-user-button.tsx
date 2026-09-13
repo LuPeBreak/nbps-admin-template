@@ -15,7 +15,7 @@ export function CreateUsersButton({ role }: CreateUsersButtonProps) {
 
   const canCreate = authClient.admin.checkRolePermission({
     role,
-    permissions: { user: ["create"] },
+    permissions: { user: ["create", "set-role"] },
   });
 
   if (!canCreate) return null;

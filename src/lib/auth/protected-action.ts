@@ -1,32 +1,22 @@
 import { headers } from "next/headers";
-import type { PermissionOption } from "@/lib/auth/permissions";
-import { hasPermission } from "@/lib/auth/permissions";
+import {
+  hasPermission,
+  isRole,
+  type PermissionRequirement,
+} from "@/lib/auth/permissions";
 import type { Role } from "@/lib/db/generated/enums";
 import type { ActionResponse } from "@/lib/errors";
 import { auth } from "./auth";
 
-export type Session = typeof auth.$Infer.Session;
-
-export interface ProtectedActionOptions {
-  requireAll?: boolean;
-}
+export type Session = typeof auth.$Infer.Session & { user: { role: Role } };
 
 /**
- * HOF que envolve Server Actions, garantindo que o usuário esteja autenticado
- * E possua as permissões requeridas. Substitui o antigo `withPermissions`.
- *
- * Custo por invocação:
- * - 1 chamada a `auth.api.getSession` (validação de sessão no DB — security
- *   boundary não removível).
- * - 0 chamadas a `auth.api.userHasPermission` — checagem de permissão roda
- *   em memória via `hasPermission` (lookup em `rolePermissions` estático).
- *
- * Veja `src/lib/auth/permissions.ts` para o trade-off do helper in-memory.
+ * Validates the session once per invocation, then evaluates static capabilities.
+ * The server chooses the requirement; the callback still owns contextual rules.
  */
 export function protectedAction<T, TArgs extends unknown[]>(
-  options: PermissionOption[],
+  requirement: PermissionRequirement,
   callback: (session: Session, ...args: TArgs) => Promise<ActionResponse<T>>,
-  opts?: ProtectedActionOptions,
 ) {
   return async (...args: TArgs): Promise<ActionResponse<T>> => {
     const session = await auth.api.getSession({
@@ -43,10 +33,7 @@ export function protectedAction<T, TArgs extends unknown[]>(
       };
     }
 
-    const requireAll = opts?.requireAll ?? true;
-    const role = session.user.role as Role;
-
-    if (!role) {
+    if (!isRole(session.user.role)) {
       return {
         success: false,
         error: {
@@ -56,7 +43,7 @@ export function protectedAction<T, TArgs extends unknown[]>(
       };
     }
 
-    if (!hasPermission(role, options, requireAll)) {
+    if (!hasPermission(session.user.role, requirement)) {
       return {
         success: false,
         error: {
@@ -66,6 +53,7 @@ export function protectedAction<T, TArgs extends unknown[]>(
       };
     }
 
-    return callback(session, ...args);
+    // The role guard above establishes the narrowed session contract.
+    return callback(session as Session, ...args);
   };
 }

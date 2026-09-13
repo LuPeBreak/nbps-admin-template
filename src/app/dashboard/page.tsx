@@ -4,14 +4,11 @@ import { getAdminStatsAction } from "@/actions/get-admin-stats.action";
 import { DashboardPageHeader } from "@/components/dashboard";
 import { hasPermission } from "@/lib/auth/permissions";
 import { requireSession } from "@/lib/auth/require-session";
-import type { Role } from "@/lib/db/generated/enums";
 
 export default async function DashboardPage() {
   const session = await requireSession();
-  const role = session.user.role as Role;
-  const canManageUsers = hasPermission(role, [
-    { resource: "user", action: ["list"] },
-  ]);
+  const role = session.user.role;
+  const canManageUsers = hasPermission(role, { user: ["list"] });
 
   return (
     <div>

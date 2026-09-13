@@ -1,6 +1,7 @@
+import { hasPermission } from "@/lib/auth/permissions";
 import type { Role } from "@/lib/db/generated/enums";
 import { NavUser } from "./nav-user";
-import { hasMenuPermission, sidebarLinks } from "./sidebar-config";
+import { sidebarLinks } from "./sidebar-config";
 import { SidebarLink } from "./sidebar-link";
 import { SidebarToggle } from "./sidebar-toggle";
 
@@ -11,16 +12,13 @@ interface DashboardSidebarProps {
 }
 
 /**
- * Sidebar principal do dashboard. **Server Component**.
- *
- * 1. Filtra links por permissão (síncrona, em memória, zero HTTP)
- * 2. Renderiza o `<aside>` + logo + nav + user
- * 3. Delega interatividade client mínima a `SidebarLink` (1 por link)
- *    e `NavUser` (dropdown do user) — ambos pequenos
+ * Server Component: filters destination capabilities without additional queries.
+ * SidebarLink and NavUser own client interactions.
  */
 export function DashboardSidebar({ role, name, email }: DashboardSidebarProps) {
   const visibleLinks = sidebarLinks.filter(
-    (link) => !link.permission || hasMenuPermission(role, link.permission),
+    (link) =>
+      link.permission === undefined || hasPermission(role, link.permission),
   );
 
   return (

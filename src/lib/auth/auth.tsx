@@ -4,7 +4,7 @@ import { admin } from "better-auth/plugins";
 import { env } from "@/env";
 import { prisma } from "@/lib/db";
 import { ResetPasswordEmail, renderEmail, sendEmail } from "@/lib/email";
-import { ac, admin as adminRole, user as userRole } from "./permissions";
+import { ac, roles } from "./permissions";
 
 const APP_NAME = env.EMAIL_FROM_NAME;
 
@@ -73,7 +73,7 @@ export const auth = betterAuth({
   plugins: [
     admin({
       ac,
-      roles: { admin: adminRole, user: userRole },
+      roles,
       defaultRole: "user",
       adminRoles: ["admin"],
     }),

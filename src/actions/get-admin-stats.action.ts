@@ -12,7 +12,7 @@ export interface AdminStats {
 }
 
 export const getAdminStatsAction = protectedAction(
-  [{ resource: "user", action: ["list"] }],
+  { user: ["list"] },
   async (): Promise<ActionResponse<AdminStats>> => {
     try {
       const [total, admins, users] = await Promise.all([

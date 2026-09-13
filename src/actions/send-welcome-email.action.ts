@@ -14,7 +14,7 @@ const SendWelcomeEmailSchema = z.object({
 });
 
 export const sendWelcomeEmailAction = protectedAction(
-  [{ resource: "user", action: ["create"] }],
+  { user: ["create"] },
   async (
     _session,
     input: unknown,

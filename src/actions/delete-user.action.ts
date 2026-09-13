@@ -9,7 +9,7 @@ import type { ActionResponse } from "@/lib/errors";
 import { DeleteUserSchema } from "@/validations/user.schema";
 
 export const deleteUserAction = protectedAction(
-  [{ resource: "user", action: ["delete"] }],
+  { user: ["delete"] },
   async (session, input: unknown): Promise<ActionResponse<{ ok: true }>> => {
     const validated = validateInput(DeleteUserSchema, input);
     if (!validated.ok) return validated.error;

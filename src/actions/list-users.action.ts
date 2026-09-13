@@ -25,7 +25,7 @@ export interface ListUsersResult {
 }
 
 export const listUsersAction = protectedAction(
-  [{ resource: "user", action: ["list"] }],
+  { user: ["list"] },
   async (
     _session,
     input: unknown,

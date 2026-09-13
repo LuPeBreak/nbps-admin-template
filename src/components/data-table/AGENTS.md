@@ -82,6 +82,7 @@ import { Suspense } from "react";
 import { listUsersAction } from "@/actions/list-users.action";
 import { DataTable } from "@/components/data-table/data-table";
 import { requireSession } from "@/lib/auth/require-session";
+import type { Role } from "@/lib/db/generated/enums";
 import {
   CreateUsersButton,
   UsersDataTableToolbar,
@@ -107,19 +108,19 @@ interface PageProps {
 
 export default async function AdminUsersPage({ searchParams }: PageProps) {
   // Enforces list user permissions on server route
-  await requireSession([{ resource: "user", action: ["list"] }]);
+  const session = await requireSession({ user: ["list"] });
 
   return (
     <div className="space-y-6">
       <h1>Users Management</h1>
       <Suspense fallback={<div className="h-96 animate-pulse rounded-md bg-muted" />}>
-        <UsersTable searchParams={searchParams} />
+        <UsersTable searchParams={searchParams} role={session.user.role} currentUserId={session.user.id} />
       </Suspense>
     </div>
   );
 }
 
-async function UsersTable({ searchParams }: PageProps) {
+async function UsersTable({ searchParams, role, currentUserId }: PageProps & { role: Role; currentUserId: string }) {
   const params = searchParamsCache.parse(await searchParams);
   const result = await listUsersAction(params);
 
@@ -133,10 +134,11 @@ async function UsersTable({ searchParams }: PageProps) {
     <DataTable
       columns={usersColumns}
       data={users}
+      meta={{ role, currentUserId }}
       pageCount={pageCount}
       totalCount={total}
       toolbar={<UsersDataTableToolbar />}
-      tableActions={<CreateUsersButton />}
+      tableActions={<CreateUsersButton role={role} />}
     />
   );
 }

@@ -1,13 +1,15 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth/auth";
-import { hasPermission, type PermissionOption } from "@/lib/auth/permissions";
-import type { Role } from "@/lib/db/generated/enums";
-
-type Session = typeof auth.$Infer.Session;
+import {
+  hasPermission,
+  isRole,
+  type PermissionRequirement,
+} from "@/lib/auth/permissions";
+import type { Session } from "@/lib/auth/protected-action";
 
 export async function requireSession(
-  permissions?: PermissionOption[],
+  requirement?: PermissionRequirement,
 ): Promise<Session> {
   const session = await auth.api.getSession({ headers: await headers() });
 
@@ -15,12 +17,18 @@ export async function requireSession(
     redirect("/sign-in");
   }
 
-  if (permissions) {
-    const role = session.user.role as Role;
-    if (!role || !hasPermission(role, permissions)) {
-      redirect("/dashboard");
-    }
+  if (!isRole(session.user.role)) {
+    // Public home never redirects an existing session back to this boundary.
+    redirect("/");
   }
 
-  return session;
+  if (
+    requirement !== undefined &&
+    !hasPermission(session.user.role, requirement)
+  ) {
+    redirect("/dashboard");
+  }
+
+  // Preserve the session object after validating its single configured role.
+  return session as Session;
 }

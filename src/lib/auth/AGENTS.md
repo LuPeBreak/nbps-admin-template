@@ -6,7 +6,7 @@ Configures Better Auth (Admin plugin, Prisma adapter, RBAC) + utilities to secur
 
 ## 💎 Golden Rules
 
-- **Use requireSession**: `requireSession(permissions?)` at top of protected layouts/pages. Handles session validation + auto-redirects.
+- **Use requireSession**: `requireSession(requirement?)` at top of protected layouts/pages. Handles session validation + auto-redirects.
 - **Client-Side UX Checks**: `authClient.admin.checkRolePermission` (sync, in-memory) strictly for show/hide/disable UI. Never call async `hasPermission` on client.
 - **Double-Layer Check**: Client checks = UX only. Server validation via `protectedAction` (custom actions) or `requireSession` (pages) mandatory for security. Better Auth native client methods (`authClient.admin.*`) handle own server-side validation.
 - **No Direct Fetching**: Never `fetch("/api/auth/...")`. Use Better Auth client methods only.
@@ -17,9 +17,9 @@ Configures Better Auth (Admin plugin, Prisma adapter, RBAC) + utilities to secur
 
 - `auth.tsx` — Server-side Better Auth instance. Prisma adapter + Admin plugin + console/SMTP mailer callbacks.
 - `auth-client.ts` — Client hooks (`useSession`, `signIn`, `signUp`, `signOut`) + admin client.
-- `permissions.ts` — Single source of truth for RBAC. Roles, permissions, static `hasPermission` helper.
+- `permissions.ts` — Catalog, shared `ac`/`roles` objects, `isRole` guard and synchronous `hasPermission` capability gate.
 - `protected-action.ts` — HOF wrapper: validate sessions + permissions in Server Actions.
-- `require-session.ts` — Server Component helper. Fetch session + redirect to `/sign-in` (or `/dashboard` if permissions fail).
+- `require-session.ts` — Validates session + single role; redirects missing sessions to `/sign-in`, invalid roles to public `/`, and valid roles lacking capabilities to `/dashboard`.
 - `translate-auth-error.ts` — Translate Better Auth string errors to Portuguese.
 - `password-generator.ts` — Random passwords for new users.
 
@@ -34,14 +34,23 @@ Proxy validates session by querying DB (`auth.api.getSession`), not just cookie 
 ## 🔐 Permission Check Patterns
 
 ### 1. Server-Side Protection (Pages & Layouts)
-`requireSession` at top of Server Component. Auto-redirects unauthenticated → `/sign-in`, unauthorized → `/dashboard`. Full page recipe: see `src/app/AGENTS.md`.
+`requireSession` at top of Server Component. Auto-redirects unauthenticated → `/sign-in`, invalid role → public `/`, valid role without permission → `/dashboard`. Public home and Proxy must not redirect `/` back into a protected boundary. Full page recipe: see `src/app/AGENTS.md`.
 
 ```typescript
-const session = await requireSession([{ resource: "user", action: ["list"] }]);
+const session = await requireSession({ user: ["list"] });
 ```
 
+### Shared Capability Contract
+
+- One configured role per session: `isRole` accepts only own keys of `roles`. Missing, unknown, comma-separated and prototype keys are denied; never default an invalid role to `user`.
+- `PermissionRequest` derives resources/actions from the catalog and uses nonempty action tuples. `{ user: ["update", "set-role"] }` requires both actions. Multiple resources also use AND.
+- `PermissionRequirement` also accepts `{ anyOf: [{ user: ["list"] }, { session: ["revoke"] }] }`: OR across complete AND alternatives. No nesting, native connector objects, or `requireAll` option. Empty or malformed requirements are denied, including an empty alternative inside OR.
+- Evaluation uses each configured role object's public `authorize(request).success` API. The shape check does not implement permission matching or the full Admin plugin semantics.
+- `protectedAction` and `requireSession` each fetch the session once with request headers, regardless of the number of alternatives. They expose a session with a validated Prisma role. `requireSession()` adds no capability requirement; `requireSession({})` is denied.
+- Requirements are chosen by server code, never supplied by a client. A capability gate does not authorize every target object; contextual rules remain in the server domain. See `src/actions/AGENTS.md` for the full own/any condition.
+
 ### 2. Client-Side UX Toggle (Buttons & Tabs)
-Sync in-memory role check via `authClient.admin.checkRolePermission` — hide/disable when denied, never async network checks. Full UI patterns (buttons, row-action dropdowns): see `src/components/AGENTS.md`.
+Sync in-memory role check via `authClient.admin.checkRolePermission` — hide/disable when denied, never async network checks. Pass only simple requests to the native client. When UX needs OR, compose `anyOf.some((permissions) => authClient.admin.checkRolePermission({ role, permissions }))`; never send the NBPS wrapper to Better Auth. Full UI patterns (buttons, row-action dropdowns): see `src/components/AGENTS.md`.
 
 ### 3. Adding a New Permission or Role
 Modify `src/lib/auth/permissions.ts`:
@@ -57,7 +66,7 @@ Modify `src/lib/auth/permissions.ts`:
    export const user = ac.newRole({ ...userAc.statements, posts: ["read"] });
    export const admin = ac.newRole({ ...adminAc.statements, posts: ["create", "read", "update", "delete"] });
    ```
-3. Update `rolePermissions` map.
+3. Update the shared `roles` map, exhaustively typed against the Prisma enum. Both Admin plugins receive that same map and `ac`. Preserve `defaultRole: "user"` and `adminRoles: ["admin"]`.
 
 ---
 

@@ -2,7 +2,6 @@ import { DashboardShell, ImpersonationBanner } from "@/components/dashboard";
 import { DashboardSidebar } from "@/components/sidebar/dashboard-sidebar";
 import { SidebarProvider } from "@/components/sidebar/sidebar-provider";
 import { requireSession } from "@/lib/auth/require-session";
-import type { Role } from "@/lib/db/generated/enums";
 
 export default async function DashboardLayout({
   children,
@@ -10,7 +9,7 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const session = await requireSession();
-  const role = session.user.role as Role;
+  const role = session.user.role;
 
   return (
     <SidebarProvider>
