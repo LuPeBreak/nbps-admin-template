@@ -1,0 +1,170 @@
+@media (prefers-reduced-motion: no-preference) {
+  /* Stylesheets can survive route changes; require the Home to be mounted. */
+  html:has(.home) {
+    scroll-behavior: smooth;
+  }
+}
+
+.hero {
+  padding-block-start: clamp(4rem, calc(2rem + 5vw), 7rem);
+  padding-block-end: clamp(3rem, calc(1.5rem + 3vw), 5rem);
+}
+
+.repositoryPanel {
+  position: relative;
+  box-shadow: 0 1.5rem 3rem -2rem
+    color-mix(in srgb, var(--foreground) 30%, transparent);
+}
+
+.repositoryLink {
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.repositoryArrow,
+.ctaArrow {
+  transition:
+    transform 160ms ease,
+    opacity 160ms ease;
+}
+
+.pressable {
+  transition:
+    translate 140ms ease,
+    background-color 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.agentsLink {
+  position: relative;
+}
+
+.agentsLink::before {
+  position: absolute;
+  bottom: 100%;
+  left: 1.25rem;
+  width: 1px;
+  height: 1.25rem;
+  content: "";
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    color-mix(in srgb, var(--foreground) 24%, transparent)
+  );
+  opacity: 0.7;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .repositoryPanel {
+    animation: repository-panel-in 720ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .repositoryRow {
+    animation: repository-row-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .repositoryRow:nth-child(1) {
+    animation-delay: 120ms;
+  }
+
+  .repositoryRow:nth-child(2) {
+    animation-delay: 200ms;
+  }
+
+  .repositoryRow:nth-child(3) {
+    animation-delay: 280ms;
+  }
+
+  .repositoryRow:nth-child(4) {
+    animation-delay: 360ms;
+  }
+
+  .repositoryRow:nth-child(5) {
+    animation-delay: 440ms;
+  }
+
+  .agentsLink {
+    animation: repository-agents-in 280ms cubic-bezier(0.22, 1, 0.36, 1) 560ms
+      both;
+  }
+
+  .agentsLink::before {
+    animation: repository-trace-in 280ms ease 560ms both;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) and (hover: hover) and (
+    pointer: fine
+  ) {
+  .repositoryLink:hover .repositoryArrow,
+  .pressable:hover .ctaArrow {
+    transform: translateX(2px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .repositoryLink,
+  .repositoryArrow,
+  .ctaArrow,
+  .pressable {
+    transition: none;
+    transform: none;
+    translate: none;
+  }
+}
+
+.repositoryPanel:focus-within {
+  /* Keep the timeline running while focused content stays visible and still. */
+  --entry-opacity: 1;
+  --entry-distance: 0px;
+  --trace-opacity: 0.7;
+}
+
+@keyframes repository-panel-in {
+  from {
+    opacity: var(--entry-opacity, 0.72);
+    transform: translateY(var(--entry-distance, 8px));
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes repository-row-in {
+  from {
+    opacity: var(--entry-opacity, 0.52);
+    transform: translateY(var(--entry-distance, 5px));
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes repository-agents-in {
+  from {
+    opacity: var(--entry-opacity, 0.7);
+    transform: translateY(var(--entry-distance, 4px));
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes repository-trace-in {
+  from {
+    opacity: var(--trace-opacity, 0);
+  }
+
+  to {
+    opacity: 0.7;
+  }
+}

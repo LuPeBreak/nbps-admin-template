@@ -10,6 +10,7 @@ Next.js App Router (pages, layouts, API routes, error boundaries). Keep route-sp
 - **Default Page Exports**: Export Pages and Layouts as `default` from named functions with a `Page`/`Layout` suffix (e.g., `export default function DashboardPage()`).
 - **Server Components by Default**: All layouts + pages = Server Components. Extract interactive parts (forms, dialogs, button lists) as Client Components (`"use client"`) inside `src/components/`.
 - **Use requireSession**: Protect pages + layouts via `requireSession(requirement?)` at top of component.
+- **Public Home**: `/` stays public, including for existing sessions and invalid-role fallbacks. `page.tsx` owns its presentation metadata and composes `HomePresentation` from `src/components/home-presentation.tsx`. Derived projects can replace that presentation and its original-repository links; do not add a session lookup or automatic dashboard redirect to Home.
 - **Async Params**: In Next.js 16, `params` and `searchParams` are `Promise` types — always `await` them before use (e.g., `const resolvedParams = await params`).
 - **Canonical Derived URL State**: When server-side data loading derives a canonical value from raw search params (for example, the last valid page), redirect only when the value differs and use replacement history so the correction cannot loop or create a synthetic history entry.
 
