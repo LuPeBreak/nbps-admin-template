@@ -47,7 +47,7 @@ Declared dependency requirements come from [package.json](./package.json); resol
 | Vitest | `^4.1.10` | `4.1.10` |
 | Biome | `2.2.0` | `2.2.0` |
 
-UI primitives live in `src/components/ui/`, using shadcn conventions with Base UI. The `shadcn` package is tooling, not a version of the copied component source. Local PostgreSQL uses the `postgres:17-alpine` image in [docker-compose.yml](./docker-compose.yml), separately from the JavaScript lockfile.
+UI components live in `src/components/ui/`, following shadcn/ui conventions with the `base-nova` style configured in [components.json](./components.json) and Base UI primitives where applicable. The `shadcn` package is tooling, not a version of the copied component source. Local PostgreSQL uses the `postgres:17-alpine` image in [docker-compose.yml](./docker-compose.yml), separately from the JavaScript lockfile.
 
 ## Quick Start
 

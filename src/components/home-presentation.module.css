@@ -1,0 +1,6 @@
+@media (prefers-reduced-motion: no-preference) {
+  /* Stylesheets can survive route changes; require the Home to be mounted. */
+  html:has(.home) {
+    scroll-behavior: smooth;
+  }
+}

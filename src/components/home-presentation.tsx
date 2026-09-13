@@ -13,8 +13,11 @@ import {
 import Link from "next/link";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { buttonVariants } from "@/components/ui/button";
+import styles from "./home-presentation.module.css";
 
 const repository = "https://github.com/LuPeBreak/nbps-admin-template";
+const useTemplate =
+  "https://github.com/new?template_name=nbps-admin-template&template_owner=LuPeBreak";
 const readme = `${repository}/blob/main/README.md`;
 
 const modules = [
@@ -45,7 +48,7 @@ const features = [
     title: "Tabelas que consultam o servidor",
     description:
       "Busca, filtros, ordenação e paginação com estado na URL. A listagem de usuários mostra como conectar os componentes ao seu domínio.",
-    detail: "TanStack Table · nuqs · View Options",
+    detail: "TanStack Table · nuqs · Visibilidade de colunas",
   },
 ] as const;
 
@@ -71,7 +74,7 @@ export function HomePresentation() {
   return (
     <div
       id="inicio"
-      className="min-h-screen bg-background text-foreground [&_a:focus-visible]:outline-2 [&_a:focus-visible]:outline-offset-4 [&_a:focus-visible]:outline-solid [&_a:focus-visible]:outline-foreground [&_button:focus-visible]:outline-2 [&_button:focus-visible]:outline-offset-4 [&_button:focus-visible]:outline-solid [&_button:focus-visible]:outline-foreground [&_a]:motion-reduce:transition-none [&_button]:motion-reduce:transition-none"
+      className={`${styles.home} min-h-screen bg-background text-foreground [&_a:focus-visible]:outline-2 [&_a:focus-visible]:outline-offset-4 [&_a:focus-visible]:outline-solid [&_a:focus-visible]:outline-foreground [&_button:focus-visible]:outline-2 [&_button:focus-visible]:outline-offset-4 [&_button:focus-visible]:outline-solid [&_button:focus-visible]:outline-foreground [&_a]:motion-reduce:transition-none [&_button]:motion-reduce:transition-none`}
       style={{ fontFamily: "var(--font-geist-sans), sans-serif" }}
     >
       <a
@@ -122,8 +125,11 @@ export function HomePresentation() {
           className="mx-auto grid max-w-7xl gap-12 px-5 pt-16 pb-12 sm:px-8 sm:pt-24 lg:grid-cols-[1.3fr_1fr] lg:items-center lg:gap-16 lg:px-12 lg:pt-28 lg:pb-20"
         >
           <div>
-            <p className="mb-7 flex items-center gap-3 font-mono text-xs tracking-wider uppercase">
-              <span className="size-2 bg-foreground" aria-hidden="true" />
+            <p className="mb-7 flex items-center gap-3 text-sm font-medium leading-6 sm:text-base">
+              <span
+                className="size-2 shrink-0 bg-foreground"
+                aria-hidden="true"
+              />
               Uma base reutilizável. Seu próximo produto.
             </p>
             <h1
@@ -133,20 +139,15 @@ export function HomePresentation() {
               Comece pelo
               <br />
               seu produto.
-              <span className="mt-2 block text-muted-foreground">
-                O painel já tem
-                <br />
-                um começo.
-              </span>
             </h1>
             <p className="mt-7 max-w-lg text-base leading-7 text-muted-foreground sm:text-lg">
-              Autenticação, gestão de usuários e tabelas server-side em uma base
-              Next.js. Com estrutura e contratos para você desenvolver com
-              agentes de IA — e com contexto.
+              Autenticação, gestão de usuários e tabelas server-side já
+              estruturadas para você adaptar ao seu domínio — com regras que
+              ajudam desenvolvedores e agentes a trabalhar com contexto.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <a
-                href={repository}
+                href={useTemplate}
                 className={buttonVariants({
                   size: "lg",
                   className: "min-h-12 gap-2 px-5",
@@ -156,14 +157,14 @@ export function HomePresentation() {
                 <ArrowUpRight aria-hidden="true" />
               </a>
               <a
-                href={readme}
+                href={repository}
                 className={buttonVariants({
                   variant: "outline",
                   size: "lg",
                   className: "min-h-12 px-5",
                 })}
               >
-                Ler a documentação <ArrowRight aria-hidden="true" />
+                Ver no GitHub <ArrowUpRight aria-hidden="true" />
               </a>
             </div>
             <p className="mt-4 text-xs text-muted-foreground">
@@ -198,7 +199,7 @@ export function HomePresentation() {
                   <li key={module.path}>
                     <a
                       href={`${repository}/tree/main/${module.path}`}
-                      className="group flex flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-md px-2 py-3 hover:bg-muted"
+                      className="group flex flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-md px-2 py-3 transition-colors hover:bg-muted"
                     >
                       <code className="text-xs sm:text-sm">{module.path}</code>
                       <span className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -239,7 +240,7 @@ export function HomePresentation() {
                 "Prisma",
                 "PostgreSQL",
                 "Tailwind CSS",
-                "Base UI",
+                "shadcn/ui",
               ].map((name) => (
                 <li key={name}>{name}</li>
               ))}
@@ -249,7 +250,7 @@ export function HomePresentation() {
         <section
           id="recursos"
           aria-labelledby="features-title"
-          className="mx-auto max-w-7xl scroll-mt-8 px-5 py-16 sm:px-8 sm:py-24 lg:px-12"
+          className="mx-auto flex max-w-7xl flex-col justify-center px-5 py-16 sm:px-8 sm:py-24 md:min-h-svh lg:px-12"
         >
           <div className="grid gap-5 md:grid-cols-2 md:gap-12">
             <div>
@@ -273,7 +274,10 @@ export function HomePresentation() {
           </div>
           <div className="mt-12 grid gap-8 lg:grid-cols-3 lg:gap-10">
             {features.map((feature, index) => (
-              <article key={feature.title} className="border-t pt-6">
+              <article
+                key={feature.title}
+                className="flex flex-col border-t pt-6"
+              >
                 <div className="mb-7 flex items-center justify-between">
                   <feature.icon
                     className="size-6"
@@ -284,19 +288,19 @@ export function HomePresentation() {
                     0{index + 1}
                   </span>
                 </div>
-                <h3 className="max-w-xs text-xl font-medium tracking-tight">
+                <h3 className="max-w-xs text-xl font-medium tracking-tight lg:min-h-14">
                   {feature.title}
                 </h3>
-                <p className="mt-4 text-sm leading-6 text-muted-foreground">
+                <p className="mt-4 pb-6 text-sm leading-6 text-muted-foreground">
                   {feature.description}
                 </p>
-                <p className="mt-6 text-xs font-medium">{feature.detail}</p>
+                <p className="mt-auto text-xs font-medium">{feature.detail}</p>
               </article>
             ))}
           </div>
           <a
             href={`${repository}/tree/main/src/components/users`}
-            className="mt-10 inline-flex min-h-10 items-center gap-2 text-sm font-medium underline underline-offset-4"
+            className="mt-10 inline-flex min-h-10 items-center gap-2 self-start text-sm font-medium underline underline-offset-4"
           >
             Explorar a implementação de usuários{" "}
             <ArrowUpRight className="size-4" aria-hidden="true" />
@@ -304,11 +308,11 @@ export function HomePresentation() {
         </section>
         <section
           aria-labelledby="agents-title"
-          className="bg-primary text-primary-foreground"
+          className="border-y bg-muted/50 text-foreground"
         >
           <div className="mx-auto grid max-w-7xl gap-12 px-5 py-16 sm:px-8 sm:py-20 lg:grid-cols-2 lg:gap-20 lg:px-12">
             <div>
-              <p className="mb-6 font-mono text-xs">
+              <p className="mb-6 font-mono text-xs text-muted-foreground">
                 03 / DESENVOLVIMENTO COM AGENTES
               </p>
               <h2
@@ -319,26 +323,31 @@ export function HomePresentation() {
                 <br />
                 nos arquivos e no fluxo.
               </h2>
-              <p className="mt-6 max-w-md text-base leading-7">
+              <p className="mt-6 max-w-md text-base leading-7 text-muted-foreground">
                 Uma organização que ajuda pessoas e agentes a localizar padrões,
                 entender limites e revisar mudanças. O contexto acompanha o
                 código.
               </p>
-              <div className="mt-9 inline-flex items-center gap-3 rounded-full border border-primary-foreground/40 px-4 py-2.5 text-xs">
-                <GitPullRequest className="size-4" aria-hidden="true" />{" "}
-                Mudanças pequenas. Revisão humana.
+              <div className="mt-9 inline-flex max-w-full items-center gap-3 rounded-xl border bg-background px-4 py-3 text-xs leading-5">
+                <GitPullRequest
+                  className="size-4 shrink-0"
+                  aria-hidden="true"
+                />
+                <span>Branch por feature · PR focal · Squash na main</span>
               </div>
             </div>
             <ol className="space-y-8">
               {workflow.map((step, index) => (
                 <li
                   key={step.title}
-                  className="grid grid-cols-[2rem_1fr] gap-4 border-t border-primary-foreground/30 pt-5"
+                  className="grid grid-cols-[2rem_1fr] gap-4 border-t pt-5"
                 >
                   <span className="pt-1 font-mono text-xs">0{index + 1}</span>
                   <div>
                     <h3 className="text-lg font-medium">{step.title}</h3>
-                    <p className="mt-2 text-sm leading-6">{step.description}</p>
+                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                      {step.description}
+                    </p>
                   </div>
                 </li>
               ))}
