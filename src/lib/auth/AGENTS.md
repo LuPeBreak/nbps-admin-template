@@ -19,7 +19,7 @@ Configures Better Auth (Admin plugin, Prisma adapter, RBAC) + utilities to secur
 - `auth-client.ts` — Client hooks (`useSession`, `signIn`, `signUp`, `signOut`) + admin client.
 - `permissions.ts` — Catalog, shared `ac`/`roles` objects, `isRole` guard and synchronous `hasPermission` capability gate.
 - `protected-action.ts` — HOF wrapper: validate sessions + permissions in Server Actions.
-- `require-session.ts` — Validates session + single role; redirects missing sessions to `/sign-in`, invalid roles to public `/`, and valid roles lacking capabilities to `/dashboard`.
+- `require-session.ts` — Validates session + role under the current single-role baseline; redirects missing sessions to `/sign-in`, invalid roles to public `/`, and valid roles lacking capabilities to `/dashboard`.
 - `translate-auth-error.ts` — Translate Better Auth string errors to Portuguese.
 - `password-generator.ts` — Random passwords for new users.
 
@@ -42,7 +42,9 @@ const session = await requireSession({ user: ["list"] });
 
 ### Shared Capability Contract
 
-- One configured role per session: `isRole` accepts only own keys of `roles`. Missing, unknown, comma-separated and prototype keys are denied; never default an invalid role to `user`.
+- **Current Role Baseline**: NBPS base currently models one role per user (`user | admin`). This is a current baseline limitation, not a permanent architectural prohibition.
+- **Requirement-Driven Evolution**: Do not implement multi-role support without a real product requirement. A derived project may expand to multiple roles when needed, provided persistence, session typing, authorization boundaries and tests are adapted consistently with Better Auth.
+- **No Partial Multi-Role Support**: Do not partially support comma-separated roles while Prisma still models a single enum role. Under the current baseline, `isRole` accepts only own keys of `roles`. Missing, unknown, multiple, comma-separated and prototype keys are denied; never default an invalid role to `user`.
 - `PermissionRequest` derives resources/actions from the catalog and uses nonempty action tuples. `{ user: ["update", "set-role"] }` requires both actions. Multiple resources also use AND.
 - `PermissionRequirement` also accepts `{ anyOf: [{ user: ["list"] }, { session: ["revoke"] }] }`: OR across complete AND alternatives. No nesting, native connector objects, or `requireAll` option. Empty or malformed requirements are denied, including an empty alternative inside OR.
 - Evaluation uses each configured role object's public `authorize(request).success` API. The shape check does not implement permission matching or the full Admin plugin semantics.

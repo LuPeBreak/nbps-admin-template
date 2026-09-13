@@ -37,7 +37,7 @@ Only Next.js-recognized files live here:
 Route security = double-layer protection:
 
 1. **Proxy Layer (`src/proxy.ts`)**: Validates the active session (mechanism documented in `src/lib/auth/AGENTS.md`). Unauth → redirect to `/sign-in` from private routes. Logged-in → redirect to `/dashboard` from auth routes.
-2. **Page Layer (`page.tsx` / `layout.tsx`)**: Calls `requireSession`, returning a session with a validated single Prisma role. Missing session → `/sign-in`; invalid role → public `/` (no automatic return to dashboard); valid role lacking capabilities → `/dashboard`. An omitted requirement means authentication only; `{}` denies access. Use the shared AND request or explicit `anyOf` without nested composition. Page capabilities do not replace contextual authorization of individual target objects.
+2. **Page Layer (`page.tsx` / `layout.tsx`)**: Calls `requireSession`, returning a session with a validated single Prisma role under the current NBPS baseline (role-model evolution is governed by `src/lib/auth/AGENTS.md`). Missing session → `/sign-in`; invalid role → public `/` (no automatic return to dashboard); valid role lacking capabilities → `/dashboard`. An omitted requirement means authentication only; `{}` denies access. Use the shared AND request or explicit `anyOf` without nested composition. Page capabilities do not replace contextual authorization of individual target objects.
 
 ---
 
