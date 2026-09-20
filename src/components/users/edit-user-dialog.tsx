@@ -1,9 +1,9 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useId } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useId } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -24,7 +24,8 @@ import {
 } from "@/components/ui/select";
 import { useSession } from "@/lib/auth";
 import { authClient } from "@/lib/auth/auth-client";
-import { translateAuthError } from "@/lib/auth/translate-auth-error";
+import type { ActionErrorCode } from "@/lib/errors";
+import { useDialogAction } from "@/lib/use-dialog-action";
 import { isCurrentUser } from "@/lib/user-helpers";
 import { type EditUserInput, EditUserSchema } from "@/validations/user.schema";
 import type { UserTableRow } from "./users-table-types";
@@ -42,6 +43,11 @@ export function EditUserDialog({
   onOpenChange,
   onSuccess,
 }: EditUserDialogProps) {
+  const router = useRouter();
+  const { execute } = useDialogAction({
+    successMessage: "Usuário atualizado.",
+    onSuccess,
+  });
   const { data: session } = useSession();
   const isSelf = isCurrentUser(session, user.id);
   const formId = useId();
@@ -49,20 +55,34 @@ export function EditUserDialog({
   const currentRole = user.role;
   const form = useForm<EditUserInput>({
     resolver: zodResolver(EditUserSchema),
-    defaultValues: { name: user.name, role: currentRole as "admin" | "user" },
+    defaultValues: { name: user.name, role: currentRole },
   });
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: A different user with identical values must also discard the previous draft.
+  useEffect(() => {
+    if (open) {
+      form.reset({ name: user.name, role: currentRole });
+    }
+  }, [open, user.id, user.name, currentRole, form.reset]);
+
   async function onSubmit(data: EditUserInput) {
-    try {
+    let persisted = false;
+    const ok = await execute(async () => {
       if (data.name !== user.name) {
         const { error: nameErr } = await authClient.admin.updateUser({
           userId: user.id,
           data: { name: data.name },
         });
         if (nameErr) {
-          toast.error(translateAuthError(nameErr));
-          return;
+          return {
+            success: false as const,
+            error: {
+              message: nameErr.message ?? "",
+              code: (nameErr.code as ActionErrorCode) ?? "INTERNAL",
+            },
+          };
         }
+        persisted = true;
       }
 
       if (data.role !== currentRole) {
@@ -71,16 +91,23 @@ export function EditUserDialog({
           role: data.role,
         });
         if (roleErr) {
-          toast.error(translateAuthError(roleErr));
-          return;
+          return {
+            success: false as const,
+            error: {
+              message: roleErr.message ?? "",
+              code: (roleErr.code as ActionErrorCode) ?? "INTERNAL",
+            },
+          };
         }
       }
 
-      toast.success("Usuário atualizado.");
+      return { success: true as const, data: null };
+    });
+    if (ok) {
       onOpenChange(false);
-      onSuccess?.();
-    } catch (err) {
-      toast.error(translateAuthError(err));
+    } else if (persisted) {
+      // Native name and role mutations are independent; a failed role cannot undo the name.
+      router.refresh();
     }
   }
 
