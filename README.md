@@ -71,7 +71,7 @@ Copy [.env.example](./.env.example) to `.env` (`cp .env.example .env` in a POSIX
 | --- | --- |
 | `DATABASE_URL` | The example connects to the supplied Compose database on `localhost:5433`, database `nbps_dev`. Change it if using another database. |
 | `BETTER_AUTH_SECRET` | Replace the placeholder with a random secret of at least 32 characters. |
-| `BETTER_AUTH_URL` | Keep `http://localhost:3000` for the default local server. |
+| `BETTER_AUTH_URL` | Canonical origin and fallback. Keep `http://localhost:3000` locally. With `https://nbps.lupe.dev.br`, auth and welcome links use the current allowed `*.nbps.lupe.dev.br` preview host. Other domains remain exact-host only; see `src/lib/auth/AGENTS.md`. |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Set the initial admin's email and password. Environment validation requires a valid email and a password of at least 8 characters. |
 | `SMTP_HOST` | Leave empty to start without email delivery. See [Email configuration](#email-configuration) for the exact behavior. |
 | `EMAIL_FROM` | **Remove or comment out the empty `EMAIL_FROM=""` line in the example**, or supply a valid sender email. The current `z.email().optional()` schema accepts an omitted value, but rejects an empty string. |
