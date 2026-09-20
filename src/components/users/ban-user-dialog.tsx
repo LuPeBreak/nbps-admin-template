@@ -18,7 +18,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useSession } from "@/lib/auth";
 import { authClient } from "@/lib/auth/auth-client";
-import { translateAuthError } from "@/lib/auth/translate-auth-error";
+import type { ActionErrorCode } from "@/lib/errors";
+import { useDialogAction } from "@/lib/use-dialog-action";
 import { isCurrentUser } from "@/lib/user-helpers";
 
 const BanUserSchema = z.object({
@@ -42,6 +43,10 @@ export function BanUserDialog({
   onOpenChange,
   onSuccess,
 }: BanUserDialogProps) {
+  const { execute } = useDialogAction({
+    successMessage: "Usuário banido.",
+    onSuccess,
+  });
   const { data: session } = useSession();
   const isSelf = isCurrentUser(session, userId);
 
@@ -56,19 +61,23 @@ export function BanUserDialog({
       return;
     }
 
-    const { error: err } = await authClient.admin.banUser({
-      userId,
-      banReason: data.reason || undefined,
+    const ok = await execute(async () => {
+      const { error } = await authClient.admin.banUser({
+        userId,
+        banReason: data.reason || undefined,
+      });
+      if (error) {
+        return {
+          success: false as const,
+          error: {
+            message: error.message ?? "",
+            code: (error.code as ActionErrorCode) ?? "INTERNAL",
+          },
+        };
+      }
+      return { success: true as const, data: null };
     });
-
-    if (err) {
-      toast.error(translateAuthError(err));
-      return;
-    }
-
-    toast.success("Usuário banido.");
-    onOpenChange(false);
-    onSuccess?.();
+    if (ok) onOpenChange(false);
   }
 
   return (

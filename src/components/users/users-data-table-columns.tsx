@@ -8,6 +8,10 @@ import { StatusBadge } from "./status-badge";
 import { UsersDataTableRowActions } from "./users-data-table-row-actions";
 import type { UsersTableMeta, UserTableRow } from "./users-table-types";
 
+export function getUserRowId(user: UserTableRow) {
+  return user.id;
+}
+
 export const usersColumns: ColumnDef<UserTableRow>[] = [
   {
     accessorKey: "name",

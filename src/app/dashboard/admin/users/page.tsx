@@ -7,6 +7,7 @@ import { DashboardPageHeader } from "@/components/dashboard";
 import { DataTable } from "@/components/data-table/data-table";
 import {
   CreateUsersButton,
+  getUserRowId,
   UsersDataTableToolbar,
   usersColumns,
 } from "@/components/users";
@@ -121,6 +122,7 @@ async function UsersTable({
     <DataTable
       columns={usersColumns}
       data={users}
+      getRowId={getUserRowId}
       meta={{ currentUserId, role }}
       pageCount={pageCount}
       totalCount={total}

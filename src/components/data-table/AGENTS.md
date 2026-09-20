@@ -7,6 +7,7 @@ Reusable server-side data table on `@tanstack/react-table` + state sync via `nuq
 ## 💎 Golden Rules
 
 - **Server-Side Only**: Never fetch/load full dataset on client. Paginate, search, sort on DB layer.
+- **Stable Entity Identity**: Domains with stable entity keys must provide `getRowId` (the native TanStack option) to `DataTable`; positional IDs can transfer row-local state between entities after paging, filtering, or refresh. Keep the resolver in the domain's client module when passing it through a Server Component. The generic table must not assume an `id` field or a User DTO.
 - **Canonical Slots**:
   - `toolbar` (left-aligned): Search fields, filters, facets.
   - `tableActions` (right-aligned): Main CTAs ("New User", "Export").
@@ -85,6 +86,7 @@ import { requireSession } from "@/lib/auth/require-session";
 import type { Role } from "@/lib/db/generated/enums";
 import {
   CreateUsersButton,
+  getUserRowId,
   UsersDataTableToolbar,
   usersColumns,
 } from "@/components/users";
@@ -134,6 +136,7 @@ async function UsersTable({ searchParams, role, currentUserId }: PageProps & { r
     <DataTable
       columns={usersColumns}
       data={users}
+      getRowId={getUserRowId}
       meta={{ role, currentUserId }}
       pageCount={pageCount}
       totalCount={total}

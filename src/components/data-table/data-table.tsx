@@ -5,6 +5,7 @@ import {
   flexRender,
   getCoreRowModel,
   type TableMeta,
+  type TableOptions,
   useReactTable,
   type VisibilityState,
 } from "@tanstack/react-table";
@@ -29,6 +30,7 @@ interface DataTableProps<TData, TValue> {
   toolbar?: React.ReactNode;
   tableActions?: React.ReactNode;
   meta?: TableMeta<TData>;
+  getRowId?: TableOptions<TData>["getRowId"];
 }
 
 export function DataTable<TData, TValue>({
@@ -39,6 +41,7 @@ export function DataTable<TData, TValue>({
   toolbar,
   tableActions,
   meta,
+  getRowId,
 }: DataTableProps<TData, TValue>) {
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
 
@@ -50,6 +53,7 @@ export function DataTable<TData, TValue>({
     manualFiltering: true,
     manualSorting: true,
     meta,
+    getRowId,
     onColumnVisibilityChange: setColumnVisibility,
     state: { columnVisibility },
     getCoreRowModel: getCoreRowModel(),
