@@ -100,7 +100,7 @@ export function HomePresentation() {
           </a>
           <nav
             aria-label="Navegação principal"
-            className="flex items-center gap-4 text-sm sm:gap-6"
+            className="ml-auto flex items-center gap-4 text-sm sm:gap-6"
           >
             <a href="#recursos" className="hidden hover:underline sm:inline">
               Recursos
@@ -108,14 +108,17 @@ export function HomePresentation() {
             <a href={readme} className="hidden hover:underline md:inline">
               Documentação
             </a>
-            <ThemeSwitcher />
             <Link
               href="/sign-in"
-              className="inline-flex min-h-9 items-center gap-1.5 font-medium hover:underline"
+              className={buttonVariants({
+                size: "lg",
+                className: "min-h-9 px-3",
+              })}
             >
               Entrar no painel{" "}
               <ArrowUpRight className="size-4" aria-hidden="true" />
             </Link>
+            <ThemeSwitcher />
           </nav>
         </div>
       </header>
