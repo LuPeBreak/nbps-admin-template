@@ -26,7 +26,12 @@ vi.mock("better-auth/client/plugins", () => ({
 vi.mock("better-auth/react", () => ({
   createAuthClient: mocks.createAuthClient,
 }));
-vi.mock("@/env", () => ({ env: { EMAIL_FROM_NAME: "NBPS" } }));
+vi.mock("@/env", () => ({
+  env: {
+    EMAIL_FROM_NAME: "NBPS",
+    BETTER_AUTH_URL: "https://nbps.lupe.dev.br",
+  },
+}));
 vi.mock("@/lib/db", () => ({ prisma: {} }));
 vi.mock("@/lib/email", () => ({
   ResetPasswordEmail: () => null,
@@ -58,6 +63,25 @@ function expectSharedRoleWiring(options: RoleWiring | undefined) {
 }
 
 describe("Better Auth role wiring contract", () => {
+  it("uses the bounded dynamic URL policy without disabling origin or cookie protections", () => {
+    expect(mocks.betterAuth.mock.calls[0]?.[0]).toMatchObject({
+      baseURL: {
+        allowedHosts: ["nbps.lupe.dev.br", "*.nbps.lupe.dev.br"],
+        protocol: "https",
+        fallback: "https://nbps.lupe.dev.br",
+      },
+      advanced: { trustedProxyHeaders: true },
+    });
+    const configuration = mocks.betterAuth.mock.calls[0]?.[0] as {
+      advanced: Record<string, unknown>;
+      trustedOrigins?: unknown;
+    };
+    expect(configuration.trustedOrigins).toBeUndefined();
+    expect(configuration.advanced.disableCSRFCheck).toBeUndefined();
+    expect(configuration.advanced.disableOriginCheck).toBeUndefined();
+    expect(configuration.advanced.crossSubDomainCookies).toBeUndefined();
+  });
+
   it("passes the shared access control and roles to the server admin plugin", () => {
     expect(mocks.serverAdmin).toHaveBeenCalledOnce();
     const options = mocks.serverAdmin.mock.calls[0]?.[0] as

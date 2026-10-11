@@ -4,12 +4,15 @@ import { admin } from "better-auth/plugins";
 import { env } from "@/env";
 import { prisma } from "@/lib/db";
 import { ResetPasswordEmail, renderEmail, sendEmail } from "@/lib/email";
+import { authTrustedProxyHeaders, createAuthBaseURL } from "./auth-url";
 import { ac, roles } from "./permissions";
 
 const APP_NAME = env.EMAIL_FROM_NAME;
 
 export const auth = betterAuth({
+  baseURL: createAuthBaseURL(env.BETTER_AUTH_URL),
   advanced: {
+    trustedProxyHeaders: authTrustedProxyHeaders,
     ipAddress: {
       // Cloudflare IP ranges — https://www.cloudflare.com/ips/
       trustedProxies: [

@@ -1,8 +1,14 @@
 "use server";
 
+import { resolveDynamicBaseURL } from "better-auth";
+import { headers } from "next/headers";
 import { z } from "zod";
 import { env } from "@/env";
 import { actionError, validateInput } from "@/lib/actions/action-helpers";
+import {
+  authTrustedProxyHeaders,
+  createAuthBaseURL,
+} from "@/lib/auth/auth-url";
 import { protectedAction } from "@/lib/auth/protected-action";
 import { type SendEmailInput, sendEmail } from "@/lib/email";
 import { renderWelcomeEmail } from "@/lib/email/templates/welcome-email";
@@ -23,11 +29,17 @@ export const sendWelcomeEmailAction = protectedAction(
     if (!validated.ok) return validated.error;
 
     try {
+      const origin = resolveDynamicBaseURL(
+        createAuthBaseURL(env.BETTER_AUTH_URL),
+        await headers(),
+        "/",
+        authTrustedProxyHeaders,
+      );
       const { html, text } = await renderWelcomeEmail({
         appName: env.EMAIL_FROM_NAME,
         name: validated.data.name,
         email: validated.data.email,
-        loginUrl: `${env.BETTER_AUTH_URL}/sign-in`,
+        loginUrl: new URL("/sign-in", origin).href,
       });
 
       const sendInput: SendEmailInput = {

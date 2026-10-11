@@ -17,6 +17,7 @@ Configures Better Auth (Admin plugin, Prisma adapter, RBAC) + utilities to secur
 
 - `auth.tsx` — Server-side Better Auth instance. Prisma adapter + Admin plugin + console/SMTP mailer callbacks.
 - `auth-client.ts` — Client hooks (`useSession`, `signIn`, `signUp`, `signOut`) + admin client.
+- `auth-url.ts` — Shared dynamic base URL policy for authentication and application email links.
 - `permissions.ts` — Catalog, shared `ac`/`roles` objects, `isRole` guard and synchronous `hasPermission` capability gate.
 - `protected-action.ts` — HOF wrapper: validate sessions + permissions in Server Actions.
 - `require-session.ts` — Validates session + role under the current single-role baseline; redirects missing sessions to `/sign-in`, invalid roles to public `/`, and valid roles lacking capabilities to `/dashboard`.
@@ -28,6 +29,16 @@ Configures Better Auth (Admin plugin, Prisma adapter, RBAC) + utilities to secur
 ## 🌐 Proxy Pattern & Config (`src/proxy.ts`)
 
 Proxy validates session by querying DB (`auth.api.getSession`), not just cookie presence. Prevents redirect loops when cookie exists but session revoked or DB reset.
+
+### Request Origins and Email Links
+
+- `BETTER_AUTH_URL` is the canonical HTTP(S) origin and fallback, including headerless infrastructure calls such as the seed. It no longer overrides an allowed preview request host.
+- `createAuthBaseURL` allows the configured canonical host/port. For the canonical NBPS host (`nbps.lupe.dev.br`, without a non-default port), it also allows `*.nbps.lupe.dev.br`. Local development allows only its configured host/port (normally `localhost:3000`); other adopted domains remain exact-host only until their own preview namespace is explicitly configured.
+- Better Auth 1.6.23 resolves the forwarded host, Host, then request URL against this allowlist. Unmatched hosts use the canonical fallback; they never become generated link destinations. Protocol is pinned to the canonical URL, not supplied by forwarded headers.
+- Keep `advanced.trustedProxyHeaders` and calls to the public `resolveDynamicBaseURL` utility aligned through `authTrustedProxyHeaders`. Application links use that native resolver with `await headers()`; do not concatenate the canonical URL or introduce another host parser.
+- Better Auth automatically adds allowed hosts and fallback to trusted origins. This trusts the controlled NBPS subdomain namespace, not arbitrary internet hosts; DNS and proxy ownership of that namespace remains an infrastructure prerequisite. Do not add broad `trustedOrigins`, disable CSRF/origin checks, or enable cross-subdomain cookies. `BETTER_AUTH_TRUSTED_ORIGINS`, if supplied externally, is additive in Better Auth and must remain tightly controlled.
+- Reset emails preserve the native `/api/auth/reset-password/<token>` link, which redirects to the relative `/reset-password` UI on the same resolved host. Welcome emails resolve `/sign-in` using the same policy. Cookies remain host-only; HTTPS configuration keeps secure cookies. Secrets and databases remain independent per deployment.
+- Native in-memory regression coverage: `pnpm test src/lib/auth/auth-url.test.ts src/lib/auth/auth-wiring.test.ts src/actions/send-welcome-email.action.test.ts`. No real database or SMTP is used.
 
 ---
 
